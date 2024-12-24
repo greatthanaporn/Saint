@@ -3,22 +3,23 @@ import plotly.express as px
 from django.shortcuts import render
 import os
 
-def show_graph(request):
+def show_graphs(request):
     # กำหนดเส้นทางไปยังไฟล์ CSV
     csv_path = os.path.join(os.path.dirname(__file__), 'data', 'data.csv')
     
     # อ่านข้อมูลจากไฟล์ CSV
     df = pd.read_csv(csv_path)
     
-    # ตรวจสอบว่าคอลัมน์ที่ต้องการมีอยู่ใน DataFrame
-    if 'Gender' in df.columns and 'Age' in df.columns:
-        # สร้างกราฟแท่งด้วย Plotly
-        fig = px.histogram(df, x='Age', color='Gender', barmode='group',
+    # สร้างกราฟแท่ง (Bar Chart)
+    fig1 = px.histogram(df, x='Age', color='Gender', barmode='group',
                            title='จำนวนของแต่ละเพศในแต่ละช่วงอายุ')
-        
-        # แปลงกราฟเป็น HTML
-        graph_html = fig.to_html(full_html=False)
-    else:
-        graph_html = "<p>ไม่พบคอลัมน์ 'Gender' หรือ 'Age' ในไฟล์ข้อมูล</p>"
+    graph1_html = fig1.to_html(full_html=False)
     
-    return render(request, 'graph.html', {'graph_html': graph_html})
+    # สร้างกราฟวงกลม (Pie Chart)
+    gender_counts = df['Gender'].value_counts().reset_index()
+    gender_counts.columns = ['Gender', 'Count']
+    fig2 = px.pie(gender_counts, names='Gender', values='Count',
+                  title='สัดส่วนจำนวนของแต่ละเพศ')
+    graph2_html = fig2.to_html(full_html=False)
+    
+    return render(request, 'graph.html', {'graph1_html': graph1_html, 'graph2_html': graph2_html})

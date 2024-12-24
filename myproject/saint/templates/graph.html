@@ -4,10 +4,25 @@
     <meta charset="UTF-8">
     <title>กราฟด้วย Plotly</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .graph-container {
+            display: flex;
+            flex-direction: column; /* เปลี่ยนเป็น 'row' หากต้องการวางกราฟในแนวนอน */
+            align-items: center;
+        }
+        .graph {
+            width: 80%; /* ปรับขนาดตามต้องการ */
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
     <h1>กราฟตามอายุและเพศ</h1>
-    <!-- แสดงกราฟ -->
-    <div>{{ graph_html|safe }}</div>
+    <div class="graph-container">
+        <!-- แสดงกราฟแท่ง -->
+        <div class="graph">{{ graph1_html|safe }}</div>
+        <!-- แสดงกราฟวงกลม -->
+        <div class="graph">{{ graph2_html|safe }}</div>
+    </div>
 </body>
 </html>
