@@ -23,3 +23,17 @@ def show_graphs(request):
     graph2_html = fig2.to_html(full_html=False)
     
     return render(request, 'graph.html', {'graph1_html': graph1_html, 'graph2_html': graph2_html})
+
+def box(request):
+    # อ่านข้อมูลจากไฟล์ CSV
+    df = pd.read_csv('D:\DSTbox\Saint\myproject\saint\data\Pokemon.csv')
+
+    # สร้างกราฟแรก
+    fig1 = px.box(df, x='Generation', y='Total', title='การกระจายของ Total ในแต่ละ Generation')
+    graph1 = fig1.to_html(full_html=False)
+
+    # สร้างกราฟที่สอง
+    fig2 = px.box(df, x='Legendary', y='Total', title='การกระจายของ Total ระหว่าง Pokémon ธรรมดาและ Legendary')
+    graph2 = fig2.to_html(full_html=False)
+
+    return render(request, 'boxplot.html', {'graph1': graph1, 'graph2': graph2})
