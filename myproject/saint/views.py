@@ -35,8 +35,28 @@ def show_graphs(request):
         labels={'Life_expectancy': 'Life Expectancy', 'Country': 'Country'},  # ชื่อแกน
     )
     graph3_html = fig3.to_html(full_html=False)
+
+    hepatitis_b_region = life_expectancy_df.groupby('Region')['Hepatitis_B'].mean().reset_index()
+    fig4 = px.pie(hepatitis_b_region, names='Region', values='Hepatitis_B',
+                  title='อัตราการติดเชื้อไวรัสตับอักเสบบีในแต่ละทวีป')
+    graph4_html = fig4.to_html(full_html=False)
+
+
+        # อ่านข้อมูลจากไฟล์ Pokemon
+    pokemon_csv_path = 'D:/DSTbox/Saint/myproject/saint/data/Pokemon.csv'
+    pokemon_df = pd.read_csv(pokemon_csv_path)
     
-    return render(request, 'graph.html', {'graph1_html': graph1_html, 'graph2_html': graph2_html ,'graph3_html': graph3_html})
+    # สร้างกราฟแรกของ Pokémon
+    fig5 = px.box(pokemon_df, x='Generation', y='Total', title='การกระจายของ Total ในแต่ละ Generation')
+    graph5_html = fig5.to_html(full_html=False)
+    
+    # สร้างกราฟที่สองของ Pokémon
+    fig6 = px.box(pokemon_df, x='Legendary', y='Total', title='การกระจายของ Total ระหว่าง Pokémon ธรรมดาและ Legendary')
+    graph6_html = fig6.to_html(full_html=False)
+    
+    return render(request, 'graph.html', {'graph1_html': graph1_html, 'graph2_html': graph2_html ,'graph3_html': graph3_html,'graph4_html': graph4_html,
+        'graph5_html': graph5_html,  # กราฟแรก Pokémon
+        'graph6_html': graph6_html })
 
 
 
