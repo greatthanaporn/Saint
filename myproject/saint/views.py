@@ -21,8 +21,24 @@ def show_graphs(request):
     fig2 = px.pie(gender_counts, names='Gender', values='Count',
                   title='สัดส่วนจำนวนของแต่ละเพศ')
     graph2_html = fig2.to_html(full_html=False)
+
+    life_expectancy_csv_path = os.path.join(os.path.dirname(__file__), 'data', 'Life-Expectancy-Data-Averaged.csv')
+        # อ่านข้อมูลจากไฟล์ Life Expectancy
+    life_expectancy_df = pd.read_csv(life_expectancy_csv_path)
+        # สร้าง Bar Chart สำหรับ Life Expectancy
+    fig3 = px.bar(
+        life_expectancy_df,
+        x='Country',  # ประเทศบนแกน X
+        y='Life_expectancy',  # อายุขัยบนแกน Y
+        color='Region',  # สีแสดง Region
+        title='การกระจายของ Life Expectancy ในแต่ละประเทศ',
+        labels={'Life_expectancy': 'Life Expectancy', 'Country': 'Country'},  # ชื่อแกน
+    )
+    graph3_html = fig3.to_html(full_html=False)
     
-    return render(request, 'graph.html', {'graph1_html': graph1_html, 'graph2_html': graph2_html})
+    return render(request, 'graph.html', {'graph1_html': graph1_html, 'graph2_html': graph2_html ,'graph3_html': graph3_html})
+
+
 
 def box(request):
     # อ่านข้อมูลจากไฟล์ CSV
@@ -37,3 +53,5 @@ def box(request):
     graph2 = fig2.to_html(full_html=False)
 
     return render(request, 'boxplot.html', {'graph1': graph1, 'graph2': graph2})
+
+
