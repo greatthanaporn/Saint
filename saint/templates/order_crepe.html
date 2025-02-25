@@ -1,0 +1,23 @@
+{% extends 'navbar.html' %}
+{% load static %}
+
+{% block title %}สั่งเครป{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/order_crepe.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <main>
+            <div class="order-box">
+                <h2>คลิกเพื่อสั่งเครป !</h2>
+                <button onclick="location.href='#'">
+                    <div class="order-icon-background">
+                        <img src="{% static 'images/hh.png' %}" alt="Crepe">
+                    </div>
+                </button>
+            </div>
+        </main>
+    </div>
+{% endblock %}

@@ -1,0 +1,149 @@
+/* ตั้งค่าพื้นฐาน */
+body {
+    font-family: 'Kanit', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Navbar */
+.navbar {
+    background: #FFDA90;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+}
+
+/* Logo */
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    width: 150px; /* ปรับขนาดโลโก้ */
+    height: auto;
+    margin-right: 20px;
+    margin-left: -1200px;
+}
+
+/* Navigation Links */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-links li {
+    display: inline;
+}
+
+.nav-links a {
+    text-decoration: none;
+    font-size: 16px;
+    color: #905B28;
+    padding: 10px;
+    border-radius: 10px;
+    transition: 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ปรับขนาดพื้นหลังของไอคอน */
+.icon-background {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #FFB92C; /* สีพื้นหลังเริ่มต้น */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s ease-in-out;
+    font-size: 22px;
+    color: #905B28;
+}
+.icon-background1 {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #FFB92C; /* สีพื้นหลังเริ่มต้น */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s ease-in-out;
+    font-size: 22px;
+    color: #905B28;
+}
+
+/* เมื่อกดแล้วพื้นหลังเปลี่ยนเป็นสีน้ำตาล */
+.nav-links .active .icon-background {
+    background-color: #905B28;
+    color: #FFB92C;
+}
+
+/* ปรับขนาดไอคอน FontAwesome */
+.nav-links i {
+    font-size: 24px; /* กำหนดขนาดของไอคอน */
+}
+
+/* ปรับขนาดรูปภาพภายใน icon-background */
+.icon-background img {
+    width: 30px;
+    height: 30px;
+}
+.icon-background1 img {
+    width: 95px;
+    height: 65px;
+}
+
+/* Profile Section */
+.profile-section {
+    display: flex;
+    align-items: center;
+    margin-left: 200px;
+    margin-right: -150px;
+}
+
+.profile-link {
+    text-decoration: none;
+}
+
+.profile-img-container {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #5d4037;
+}
+
+.profile-img-container img {
+    width: 150%;
+    height: 150%;
+    object-fit: cover;
+    
+}
+
+/* ปรับขนาดปุ่มสั่งเครป */
+.order-box button img {
+    width: 100px; /* ปรับขนาดให้เล็กลง */
+    height: auto;
+}
+
+.order-box button:hover {
+    transform: scale(1.1);
+}
+.text h1{
+    font-size: 24px; 
+}
