@@ -7,7 +7,7 @@
     <title>{% block title %}I say ROAR{% endblock %}</title>
 
     <!-- CSS -->
-    <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/Admin/admin_navbar.css' %}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=Mali:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
 
@@ -16,10 +16,10 @@
 <body>
 
 <nav class="navbar">
-    <div class="container">
+    <div class="container1">
         <!-- Logo -->
         <div class="logo">
-            <a href="{% url 'order_crepe' %}">
+            <a href="{% url 'Dashboard' %}">
                 <img src="{% static 'images/aa.png' %}" alt="Crepe Logo">
             </a>
         </div>
@@ -28,36 +28,28 @@
         <!-- Navigation Links -->
         <ul class="nav-links">
             <li>
-                <a href="{% url 'order_crepe' %}" class="nav-item {% if request.resolver_match.url_name == 'order_crepe' %}active{% endif %}">
+                <a href="{% url 'Dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'Dashboard' %}active{% endif %}">
                     <div class="icon-background">
                         <i class="fas fa-store"></i> <!-- ไอคอนสั่งซื้อ -->
                     </div>
-                    สั่งซื้อ
+                    Dashboard
                 </a>
             </li>   
             <li>
-                <a href="{% url 'cart' %}" class="nav-item {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+                <a href="{% url 'admin_order' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_order' %}active{% endif %}">
                     <div class="icon-background">
                         <i class="fas fa-shopping-cart"></i> <!-- ไอคอนตะกร้า -->
                     </div>
-                    ตะกร้า
+                    ออเดอร์
                 </a>
             </li>
-            
+            <li>
                 <li>
-                    <a href="{% url 'my_orders' %}" class="nav-item {% if request.resolver_match.url_name == 'my_orders' %}active{% endif %}">
+                    <a href="{% url 'add_menu' %}" class="nav-item {% if request.resolver_match.url_name == 'add_menu' %}active{% endif %}">
                         <div class="icon-background1">
                             <img src="{% static 'images/ee1.png' %}" alt="My Orders">
                         </div>
-                        คำสั่งซื้อของฉัน
-                    </a>
-                </li>
-                <li>
-                    <a href="{% url 'order_history' %}" class="nav-item {% if request.resolver_match.url_name == 'order_history' %}active{% endif %}">
-                        <div class="icon-background">
-                            <i class="fas fa-history"></i> 
-                        </div>
-                        ประวัติคำสั่งซื้อ
+                        เพิ่มเมนู
                     </a>
                 </li>
         </ul>
@@ -77,6 +69,7 @@
                     <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
                 </a>
             </div>
+    </div>
     </div>
 </nav>
 
@@ -102,5 +95,6 @@
         });
         </script>
         
+
 </body>
 </html>

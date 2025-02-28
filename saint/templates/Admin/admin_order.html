@@ -1,0 +1,215 @@
+{% extends 'Admin/admin_navbar.html' %}
+{% load static %}
+
+{% block title %}ออเดอร์{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/Admin/admin_order.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="order-list">
+        <h2>ออเดอร์</h2>
+        <div class="order-header">
+            <span>คิวที่</span>
+            <span>สถานะ</span>
+            <span>คำสั่งซื้อ</span>
+        </div>
+
+        {% for group in order_groups %}
+        <div class="order-item">
+            <button class="queue-btn">คิวที่ {{ group.queue_number }}</button>
+            <span class="status-label {{ group.status }}" data-group-id="{{ group.queue_number }}">{{ group.status_display }}</span>
+            <button class="view-order-btn" data-group-id="{{ group.queue_number }}">ดู</button>
+        </div>
+        
+        {% endfor %}
+    </div>
+</div>
+<!-- ✅ พื้นหลังมืดโปร่งใส -->
+<div id="popupOverlay" class="popup-overlay"></div>
+<!-- ✅ ป๊อปอัพแสดงรายละเอียดออเดอร์ -->
+<div id="orderPopup" class="popup" style="display: none;">
+    <div class="popup-content">
+        <h3 id="popup-title">คิวที่ </h3>
+        <div id="order-details"></div>
+        <button id="closePopup" class="close-popup">ปิด</button>
+    </div>
+</div>
+
+<div class="popup-overlay" id="popupOverlay" style="display: none;"></div>
+<script>
+    document.querySelectorAll(".view-order-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            let groupId = this.getAttribute("data-group-id");
+
+            fetch(`/get-order-details/${groupId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("popup-title").innerText = `คิวที่ ${data.queue_number}`;
+
+                    let detailsHtml = "";
+                    data.orders.forEach(order => {
+                        detailsHtml += `
+                                <div class="order-card">
+                                    <img src="/static/images/tt.png" alt="Crepe">
+                                    <div class="order-info">
+                                        <h4>คำสั่งซื้อ</h4>
+                                        <p><strong>เลือกแป้ง:</strong> ${order.flour.join(", ")}</p>
+                                        <p><strong>เลือกแยม:</strong> ${order.filling.join(", ")}</p>
+                                        <p><strong>เลือกท็อปปิ้ง:</strong> ${order.topping.join(", ")}</p>
+                                        <p><strong>เลือกซอส:</strong> ${order.sauce.join(", ")}</p>
+                                    </div>
+                                    <div class="order-item-right">
+                                        <p class="order-quantity"><strong>จำนวน:</strong> ${order.quantity} ชิ้น</p>
+                                        <p class="order-price"><strong>ราคา:</strong> ${order.total_price} ฿</p>
+                                    </div>
+                                </div>
+                            `;
+                    });
+
+                    detailsHtml += `
+                            <div class="order-summary">
+                                <p><strong>จำนวนรวม:</strong> ${data.total_quantity} ชิ้น</p>
+                                <p><strong>ราคารวม:</strong> ${data.total_price} ฿</p>
+                                <p><strong>สถานะ:</strong> <span class="status-label ${data.status}">${data.status_display}</span></p>
+                        <button class="accept-order-btn" data-group-id="${data.queue_number}" ${data.status === "order_received" || data.status === "completed" ? "style='display:none;'" : ""}>รับออเดอร์</button>
+                        <button class="complete-order-btn" data-group-id="${data.queue_number}" ${data.status === "order_received" ? "style='display:inline-block;'" : "style='display:none;'"}>ออเดอร์เสร็จสิ้น</button>
+                        <button class="mark-paid-btn" data-group-id="${data.queue_number}" ${data.status === "completed" ? "style='display:inline-block;'" : "style='display:none;'"}>ชำระเงินเสร็จสิ้น</button>
+                            </div>
+                        `;
+
+                    document.getElementById("order-details").innerHTML = detailsHtml;
+                    document.getElementById("orderPopup").style.display = "block";
+                    document.getElementById("popupOverlay").style.display = "block";
+
+                    addOrderEventListeners();
+                });
+        });
+    });
+
+    document.getElementById("closePopup").addEventListener("click", function () {
+        document.getElementById("orderPopup").style.display = "none";
+        document.getElementById("popupOverlay").style.display = "none";
+    });
+
+    document.getElementById("popupOverlay").addEventListener("click", function () {
+        document.getElementById("orderPopup").style.display = "none";
+        document.getElementById("popupOverlay").style.display = "none";
+    });
+    function addOrderEventListeners() {
+        document.querySelectorAll(".accept-order-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            let groupId = this.getAttribute("data-group-id");
+
+            fetch(`/accept-order/${groupId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    // ✅ อัปเดตสถานะใน popup รายละเอียดออเดอร์
+                    let statusLabel = document.querySelector("#order-details .status-label");
+                    if (statusLabel) {
+                        statusLabel.innerText = data.status_display;
+                        statusLabel.classList.add("order-received");
+                    }
+
+                    // ✅ อัปเดตสถานะในหน้าหลัก
+                    let mainStatusLabel = document.querySelector(`.status-label[data-group-id='${groupId}']`);
+                    if (mainStatusLabel) {
+                        mainStatusLabel.innerText = data.status_display;
+                        mainStatusLabel.classList.add("order-received");
+                    }
+
+                    // ✅ เปลี่ยนปุ่มให้ถูกต้อง
+                    this.style.display = "none"; // ซ่อนปุ่ม "รับออเดอร์"
+                    document.querySelector(`.complete-order-btn[data-group-id='${groupId}']`).style.display = "inline-block"; // แสดงปุ่ม "ออเดอร์เสร็จสิ้น"
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+
+function updateStatusLabel(groupId, newStatus) {
+    let statusLabel = document.querySelector(`.status-label[data-group-id='${groupId}']`);
+    if (statusLabel) statusLabel.innerText = newStatus;
+}
+
+
+    document.querySelectorAll(".complete-order-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            let groupId = this.getAttribute("data-group-id");
+
+            fetch(`/complete-order/${groupId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    this.style.display = "none";
+                    document.querySelector(`.mark-paid-btn[data-group-id='${groupId}']`).style.display = "inline-block";
+                    updateStatusLabel(groupId, "เสร็จสิ้น รอชำระเงิน");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+
+    document.querySelectorAll(".mark-paid-btn").forEach(button => {
+    button.addEventListener("click", function () {
+        let groupId = this.getAttribute("data-group-id");
+
+        fetch(`/mark-as-paid/${groupId}/`, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                this.closest(".order-summary").remove();
+                updateStatusLabel(groupId, "ชำระเงินเสร็จสิ้น");
+                alert("อีเมลขอบคุณถูกส่งไปยังลูกค้าแล้ว");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+});
+
+}
+
+function updateStatusLabel(groupId, newStatus) {
+    let statusLabel = document.querySelector(`.status-label[data-group-id='${groupId}']`);
+    if (statusLabel) statusLabel.innerText = newStatus;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        let cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+</script>
+
+{% endblock %}

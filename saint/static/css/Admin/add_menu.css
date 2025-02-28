@@ -1,0 +1,224 @@
+/* พื้นหลังของทั้งหน้า */
+body {
+    background: linear-gradient(to bottom, #905B28, #FFB92C); /* สีไล่ระดับ */
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    font-family: 'Kanit', sans-serif;
+    min-height: 100vh; /* ป้องกันปัญหาพื้นหลังขาด */
+    display: flex;
+    flex-direction: column;
+}
+
+.container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; 
+    width: 100%;
+    text-align: center;
+    padding-top: 50px;
+}
+/* หัวข้อ */
+h2 {
+    font-size: 28px;
+    color: #603813;
+    margin-bottom: 20px;
+}
+.menu{
+    background-color: #FFB92C;
+    border-radius: 30px;
+    width: 1000px; /* ขยายความกว้าง */
+    height: 800px; /* ขยายความสูง */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    
+
+
+}
+
+/* ป๊อปอัพพื้นหลังโปร่งใส */
+.popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5); /* สีขาวโปร่งใส */
+    backdrop-filter: blur(5px); /* เพิ่มเอฟเฟกต์เบลอ */
+    z-index: 999; /* ให้อยู่ข้างหลังป๊อปอัพ */
+}
+/* ปุ่มเมนู */
+.menu-buttons {
+    display: flex;
+    gap: 100px;
+    margin-top: 20px;
+    margin-left: 80px;
+}
+
+.menu-buttons button {
+    background: #905B28;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: 0.3s ease-in-out;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.menu-buttons button:hover {
+    background: #D2691E;
+    transform: scale(1.05);
+}
+.popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #603813;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    width: 400px;
+    color: white;
+    text-align: center;
+    z-index: 1000; /* ให้อยู่ด้านหน้าของ overlay */
+}
+/* หัวข้อในป๊อปอัพ */
+.popup h3 {
+    margin-bottom: 20px;
+    font-size: 22px;
+}
+
+/* ฟอร์มกรอกข้อมูล */
+.popup input {
+    width: 85%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* ปุ่มในป๊อปอัพ */
+.popup-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.popup-buttons .cancel-popup {
+    background: red;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s ease-in-out;
+}
+
+.popup-buttons .confirm-add {
+    background: #FFA500;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s ease-in-out;
+}
+
+.popup-buttons .cancel-popup:hover {
+    background: darkred;
+    transform: scale(1.05);
+}
+
+.popup-buttons .confirm-add:hover {
+    background: #FF8C00;
+    transform: scale(1.05);
+}
+.menu-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    background: #FEE6B6;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    
+}
+
+.menu-category {
+    background: #FFF;
+    border-radius: 10px;
+    padding: 15px;
+    min-width: 180px;
+    border: 2px solid #905B28;
+}
+
+.menu-item {
+    display: flex;
+    text-align: center;
+    font-size: 14px;
+    width: 150px;   
+
+    background: #FFF;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 5px 0;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    border:1px solid #905B28;
+    flex-direction: column; /* ✅ จัดให้แสดงผลเป็นแนวตั้ง */
+    align-items: center; /* ✅ จัดกึ่งกลาง */
+}
+
+/* ✅ สีและขนาดของชื่อเมนู */
+.menu-item .menu-name {
+    font-weight: bold;
+    color: #603813;
+    font-size: 16px;
+}
+
+/* ✅ สีและขนาดของราคา */
+.menu-item .menu-price {
+    color: #D2691E;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+
+.menu-actions {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.menu-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.menu-actions .edit-btn { color: #FFA500; }  /* สีส้ม */
+.menu-actions .toggle-btn { color: #009688; } /* สีเขียว */
+.menu-actions .delete-btn { color: #E53935; } /* สีแดง */
+
+.menu-item.inactive {
+    opacity: 0.5; /* ✅ ทำให้เมนูที่ถูกปิดจางลง */
+    filter: grayscale(80%);
+}

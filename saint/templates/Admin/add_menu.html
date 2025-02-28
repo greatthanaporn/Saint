@@ -1,0 +1,351 @@
+{% extends 'Admin/admin_navbar.html' %}
+{% load static %}
+
+{% block title %}เพิ่มเมนู{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/Admin/add_menu.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="menu">
+        <h2>เพิ่มเมนู</h2>
+
+        <div class="menu-buttons">
+            <button class="open-popup" data-popup="popupFlour">+ เพิ่มแป้ง</button>
+            <button class="open-popup" data-popup="popupFilling">+ เพิ่มแยม</button>
+            <button class="open-popup" data-popup="popupTopping">+ เพิ่มท็อปปิ้ง</button>
+            <button class="open-popup" data-popup="popupSauce">+ เพิ่มซอส</button>
+        </div>
+
+        <!-- แสดงรายการเมนู -->
+        <div class="menu-container">
+            <div class="menu-grid">
+                <div class="menu-category" data-category="flour">
+                    <h3>แป้ง</h3>
+                    <div class="menu-items" id="flour-list">
+                        {% for item in flours %}
+                        <div class="menu-item">
+                            <span class="menu-name">{{ item.name }}</span>
+                            <span class="menu-price">ราคา {{ item.price }} บาท</span>
+
+
+                            <div class="menu-actions">
+                                <button class="edit-btn" data-id="{{ item.id }}"><i
+                                        class="fas fa-pencil-alt"></i></button>
+                                <button class="delete-btn" data-id="{{ item.id }}"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+
+                        {% empty %}
+                        <p>ยังไม่มีข้อมูล</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="menu-category" data-category="filling">
+                    <h3>แยม</h3>
+                    <div class="menu-items" id="filling-list">
+                        {% for item in fillings %}
+                        <div class="menu-item">
+                            <span class="menu-name">{{ item.name }}</span>
+                            <span class="menu-price">ราคา {{ item.price }} บาท</span>
+
+
+                            <div class="menu-actions">
+                                <button class="edit-btn" data-id="{{ item.id }}"><i
+                                        class="fas fa-pencil-alt"></i></button>
+
+                                <button class="delete-btn" data-id="{{ item.id }}"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p>ยังไม่มีข้อมูล</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="menu-category"  data-category="topping">
+                    <h3>ท็อปปิ้ง</h3>
+                    <div class="menu-items" id="topping-list">
+                        {% for item in toppings %}
+                        <div class="menu-item">
+                            <span class="menu-name">{{ item.name }}</span>
+                            <span class="menu-price">ราคา {{ item.price }} บาท</span>
+
+
+                            <div class="menu-actions">
+                                <button class="edit-btn" data-id="{{ item.id }}"><i
+                                        class="fas fa-pencil-alt"></i></button>
+
+                                <button class="delete-btn" data-id="{{ item.id }}"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p>ยังไม่มีข้อมูล</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="menu-category" data-category="sauce">
+                    <h3>ซอส</h3>
+                    <div class="menu-items" id="sauce-list">
+                        {% for item in sauces %}
+                        <div class="menu-item">
+                            <span class="menu-name">{{ item.name }}</span>
+                            <span class="menu-price">ราคา {{ item.price }} บาท</span>
+
+
+                            <div class="menu-actions">
+                                <button class="edit-btn" data-id="{{ item.id }}"><i
+                                        class="fas fa-pencil-alt"></i></button>
+
+                                <button class="delete-btn" data-id="{{ item.id }}"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p>ยังไม่มีข้อมูล</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="popup-overlay"></div>
+
+<!-- ป๊อปอัพแก้ไขเมนู -->
+{% for category in categories %}
+<div id="editPopup" class="popup">
+    <div class="popup-content">
+        <h3>แก้ไข{{ category.name }}</h3>
+        <form id="editForm">
+            {% csrf_token %}
+            <input type="hidden" name="item_id" id="editItemId">
+            <label>ชื่อ</label>
+            <input type="text" name="name" id="editName" required>
+            <label>ราคา</label>
+            <input type="number" name="price" id="editPrice" required>
+            <div class="popup-buttons">
+                <button type="button" class="cancel-popup">ยกเลิก</button>
+                <button type="submit" class="confirm-edit">บันทึก</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+
+
+
+<!-- ป๊อปอัพ -->
+<div class="popup-overlay"></div>
+
+{% for category in categories %}
+<div id="popup{{ category.key|capfirst }}" class="popup">
+    <div class="popup-content">
+        <h3>เพิ่ม{{ category.name }}</h3>
+        <form class="menuForm" data-category="{{ category.key }}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="category" value="{{ category.key }}">
+            <label>ชื่อ</label>
+            <input type="text" name="name" required>
+            <label>ราคา</label>
+            <input type="number" name="price" required>
+            <div class="popup-buttons">
+                <button type="button" class="cancel-popup">ยกเลิก</button>
+                <button type="submit" class="confirm-add">เพิ่ม</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const openPopups = document.querySelectorAll(".open-popup");
+        const closePopups = document.querySelectorAll(".cancel-popup");
+        const popups = document.querySelectorAll(".popup");
+        const overlay = document.querySelector(".popup-overlay");
+        const forms = document.querySelectorAll(".menuForm");
+
+        openPopups.forEach(button => {
+            button.addEventListener("click", function () {
+                const popupId = this.getAttribute("data-popup");
+                document.getElementById(popupId).style.display = "block";
+                overlay.style.display = "block";
+            });
+        });
+
+        closePopups.forEach(button => {
+            button.addEventListener("click", function () {
+                this.closest(".popup").style.display = "none";
+                overlay.style.display = "none";
+            });
+        });
+
+        overlay.addEventListener("click", function () {
+            popups.forEach(popup => {
+                popup.style.display = "none";
+            });
+            overlay.style.display = "none";
+        });
+
+        forms.forEach(form => {
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                let formData = new FormData(this);
+                let category = this.dataset.category;
+
+                fetch("{% url 'add_menu' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+                    }
+                }).then(response => response.json())
+                    .then(data => {
+                        if (data.status === "success") {
+                            alert(`เพิ่ม ${data.name} สำเร็จ!`);
+                            location.reload();
+
+                            let listContainer = document.getElementById(`${category}-list`);
+                            let newItem = document.createElement("div");
+                            newItem.classList.add("menu-item");
+                            newItem.innerHTML = `<span>${data.name}</span> <span>ราคา ${data.price} บาท</span>`;
+                            listContainer.appendChild(newItem);
+
+                            // ปิดป๊อปอัพ
+                            form.closest(".popup").style.display = "none";
+                            overlay.style.display = "none";
+                        } else {
+                            alert("เกิดข้อผิดพลาด");
+                        }
+                    });
+            });
+        });
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+    const editPopup = document.getElementById("editPopup");
+    const editForm = document.getElementById("editForm");
+    const editItemId = document.getElementById("editItemId");
+    const editName = document.getElementById("editName");
+    const editPrice = document.getElementById("editPrice");
+    const overlay = document.querySelector(".popup-overlay");
+
+    // เปิดป๊อปอัพแก้ไข
+    document.querySelectorAll(".edit-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            let itemId = this.getAttribute("data-id");
+            let itemElement = this.closest(".menu-item");
+            let itemName = itemElement.querySelector(".menu-name").innerText;
+            let itemPrice = itemElement.querySelector(".menu-price").innerText.replace("ราคา ", "").replace(" บาท", "");
+
+            // ดึง category จาก parent div
+            let category = itemElement.closest(".menu-category").getAttribute("data-category");
+
+            editItemId.value = itemId;
+            editName.value = itemName;
+            editPrice.value = itemPrice;
+            editForm.setAttribute("data-category", category); // บันทึก category ไว้ใน form
+
+            editPopup.style.display = "block";
+            overlay.style.display = "block";
+        });
+    });
+
+    // ปิดป๊อปอัพ
+    document.querySelector(".cancel-popup").addEventListener("click", function () {
+        editPopup.style.display = "none";
+        overlay.style.display = "none";
+    });
+
+    // ส่งข้อมูลการแก้ไขไปที่ Backend
+    editForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        let formData = new FormData(this);
+        let category = editForm.getAttribute("data-category"); // ดึง category ที่ตั้งค่าไว้
+
+        if (!category) {
+            alert("เกิดข้อผิดพลาด: ไม่พบหมวดหมู่ของเมนู");
+            return;
+        }
+
+        formData.append("category", category);
+
+        fetch(`/edit-menu/`, {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value }
+        }).then(response => response.json())
+          .then(data => {
+              if (data.status === "success") {
+                  alert("แก้ไขเมนูสำเร็จ!");
+                  location.reload();
+
+                  // อัปเดต UI โดยตรง
+                  let itemElement = document.querySelector(`.menu-item[data-id="${data.id}"]`);
+                  if (itemElement) {
+                      itemElement.querySelector(".menu-name").innerText = data.name;
+                      itemElement.querySelector(".menu-price").innerText = `ราคา ${data.price} บาท`;
+                  }
+
+                  // ปิดป๊อปอัพ
+                  editPopup.style.display = "none";
+                  overlay.style.display = "none";
+              } else {
+                  alert("เกิดข้อผิดพลาด: " + (data.message || "ไม่สามารถแก้ไขเมนูได้"));
+              }
+          })
+          .catch(error => {
+              alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+              console.error("Error:", error);
+          });
+    });
+});
+document.addEventListener("DOMContentLoaded", function () {
+    // ฟังก์ชันสำหรับการลบเมนู
+    document.querySelectorAll(".delete-btn").forEach(button => {
+        button.addEventListener("click", function () {
+            let itemId = this.getAttribute("data-id");
+            let itemElement = this.closest(".menu-item");
+            let category = itemElement.closest(".menu-category").getAttribute("data-category");
+
+            if (!category) {
+                alert("เกิดข้อผิดพลาด: ไม่พบหมวดหมู่ของเมนู");
+                return;
+            }
+
+            if (confirm("คุณต้องการลบเมนูนี้ใช่หรือไม่?")) {
+                fetch(`/delete-menu/${itemId}/${category}/`, {
+                    method: "POST",
+                    headers: { "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value }
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.status === "success") {
+                          alert("ลบเมนูสำเร็จ!");
+                          itemElement.remove(); // ลบ element ออกจาก UI
+                          
+                      } else {
+                          alert("เกิดข้อผิดพลาด: " + (data.message || "ไม่สามารถลบเมนูได้"));
+                      }
+                  })
+                  .catch(error => {
+                      alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+                      console.error("Error:", error);
+                  });
+            }
+        });
+    });
+});
+
+
+
+</script>
+{% endblock %}
+{% endblock %}

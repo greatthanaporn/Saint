@@ -1,0 +1,251 @@
+/* พื้นหลังของทั้งหน้า */
+body {
+    background: linear-gradient(to bottom, #905B28, #FFB92C); /* สีไล่ระดับ */
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    font-family: 'Kanit', sans-serif;
+    min-height: 100vh; /* ป้องกันปัญหาพื้นหลังขาด */
+    display: flex;
+    flex-direction: column;
+}
+
+/* ทำให้ Container เต็มหน้าจอ */
+.container {
+    flex: 1; /* ทำให้ container เต็มพื้นที่ */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;   
+}
+/* Header */
+h2 {
+    color: #FFB92C;
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+/* Order List */
+.order-list {
+    background: #8B5A2B;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    width: 550px;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    font-weight: bold;
+    padding-bottom: 10px;
+}
+
+/* Order Item */
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #FFD580;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 3px solid #000000;
+}
+
+.queue-btn {
+    background: #FF4500;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+/* ✅ ปรับแต่งสถานะให้โดดเด่น */
+.status-label {
+    padding: 5px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+}
+/* สถานะแต่ละแบบ */
+
+.status-label.pending {
+    background: #FFD700;
+    color: black;
+}
+
+.status-label.confirmed {
+    background: #1E90FF;
+    color: white;
+}
+.status-label.order_received {
+    background: #1100ff89;
+    color: white;
+}
+.status-label.completed {
+    background: #f86cff;
+    color: white;
+}
+
+.status-label.paid {
+    background: #008000;
+    color: white;
+}
+
+/* ปุ่มดูคำสั่งซื้อ */
+.view-order-btn {
+    background: #FFB92C;
+    color: black;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    border: 2px solid #000000;
+}
+
+/* Order Details */
+.order-details {
+    background: #FCE3B4;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+/* Order Card */
+.order-card {
+    display: flex;
+    align-items: center;
+    background: #FFF5D1;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.order-card img {
+    width: 80px;
+    height: 80px;
+    margin-right: 15px;
+}
+
+.order-info {
+    text-align: left;
+    flex: 1;
+}
+
+.quantity-price {
+    color: #FF4500;
+    font-weight: bold;
+}
+
+/* Order Summary */
+.order-summary {
+    background: #F4A460;
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+
+/* ✅ ปรับพื้นหลังและสไตล์ของปุ่มให้ดูดีขึ้น */
+.accept-order-btn,
+.complete-order-btn,
+.mark-paid-btn {
+    background: #ff9900; /* สีส้มสด */
+    color: white;
+    border: 2px solid #000;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    max-width: 250px;
+    display: block;
+    margin: 10px auto;
+    text-align: center;
+    transition: background 0.3s, transform 0.2s;
+}
+.accept-order-btn:hover {
+    background: #ff6600;
+    transform: scale(1.05);
+}
+.complete-order-btn:hover {
+    background: #4CAF50;
+    transform: scale(1.05);
+}
+.mark-paid-btn:hover {
+    background: #008000;
+    transform: scale(1.05);
+}
+
+
+/* ✅ ปรับพื้นหลังป๊อปอัพเป็นสีดำโปร่งใส */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* สีดำโปร่งใส */
+    z-index: 999;
+    display: none;
+}
+
+/* ✅ ปรับขนาดและการแสดงผลของป๊อปอัพ */
+.popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40%;
+    max-width: 500px;
+    background: white;
+    padding: 15px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    z-index: 1000;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+/* ✅ ปรับปุ่มปิด */
+.close-popup {
+    background: red;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* ✅ ปรับฟอนต์และการจัดวางในป๊อปอัพ */
+.order-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFF8E1;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    border: 3px solid #905B28;
+}
+
+.order-info {
+    text-align: left;
+    font-size: 14px;
+    padding: 0 10px;
+}
+.popup-title{
+    background: #FF4500;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+}

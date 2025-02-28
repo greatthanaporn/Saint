@@ -77,7 +77,7 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',  # ใช้ MySQL
-        'NAME': 'dstoolbox',  # ชื่อฐานข้อมูล
+        'NAME': 'dst',  # ชื่อฐานข้อมูล
         'USER': 'root',  # ชื่อผู้ใช้ MySQL
         'PASSWORD': 'root',  # รหัสผ่าน MySQL
         'HOST': 'localhost',  # ถ้ารันบนเครื่องตัวเองใช้ localhost

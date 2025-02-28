@@ -1,14 +1,68 @@
-{% extends 'navbar.html' %}
-{% load static %}
+    {% extends 'navbar.html' %}
+    {% load static %}
 
-{% block title %}สั่งเครป{% endblock %}
+    {% block title %}คำสั่งซื้อของฉัน{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/my_orders.css' %}">
-{% endblock %}
+    {% block extra_css %}
+        <link rel="stylesheet" href="{% static 'css/my_orders.css' %}">
+    {% endblock %}
 
-{% block content %}
-    <div class="container">
+    {% block content %}
+        <div class="container">
+            <div class="order-container">
+                <h2>คำสั่งซื้อของฉัน</h2>
 
-    </div>
-{% endblock %}
+                {% for group in formatted_orders %}
+                <div class="order-container-1">
+                    
+                    <div class="order-summary">
+                        <h3>คิวที่: <span class="queue-number">{{ group.queue_number }}</span></h3>
+                        <p class="order-total"><strong>ราคารวม:</strong> {{ group.total_price }} ฿</p>
+                        <p class="order-total"><strong>จำนวนรวม:</strong> {{ group.total_quantity }} ชิ้น</p>
+                        <p class="order-status">
+                            <strong>สถานะ:</strong> 
+                            <span class="status-label {% if group.status == 'pending' %}status-pending{% elif group.status == 'confirmed' %}status-confirmed{% elif group.status == 'Order received' %}status-Order received{% elif group.status == 'completed' %}status-completed{% elif group.status == 'paid' %}status-paid{% endif %}">
+                                {% if group.status == "pending" %}
+                                รอดำเนินการจากแอดมิน
+                            {% elif group.status == "order_received" %}
+                                รับออเดอร์แล้ว
+                            {% elif group.status == "confirmed" %}
+                                กำลังดำเนินการ
+                            {% elif group.status == "completed" %}
+                                เสร็จสิ้น รอชำระเงิน
+                            {% elif group.status == "paid" %}
+                                ชำระเงินเสร็จสิ้น
+                            {% else %}
+                                ไม่ทราบสถานะ
+                            {% endif %}
+                            
+                            </span>
+                        </p>
+                        
+                    </div>
+
+
+                    {% for order in group.orders %}
+                    <div class="order-item">
+                        <img src="{% static 'images/tt.png' %}" alt="Crepe" class="order-item-image">
+                        <div class="order-item-details">
+                            <h3>คำสั่งซื้อ</h3>
+                            <p><strong>เลือกแป้ง:</strong> {{ order.flour|join:", " }}</p>
+                            <p><strong>เลือกแยม:</strong> {{ order.filling|join:", " }}</p>
+                            <p><strong>เลือกท็อปปิ้ง:</strong> {{ order.topping|join:", " }}</p>
+                            <p><strong>เลือกซอส:</strong> {{ order.sauce|join:", " }}</p>
+                            <p><strong>จำนวน:</strong> {{ order.quantity }} ชิ้น</p>
+                        </div>
+                        <div class="order-item-right">
+                            <p class="order-quantity"><strong>จำนวน</strong> {{ order.quantity }} ชิ้น</p>
+                            <p class="order-price"><strong>ราคา</strong> {{ order.total_price }} ฿</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% empty %}
+                <p>ไม่มีคำสั่งซื้อ</p>
+                {% endfor %}
+            </div>
+        </div>
+    {% endblock %}

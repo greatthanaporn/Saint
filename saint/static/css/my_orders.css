@@ -18,3 +18,224 @@ body {
     align-items: center;
     margin-top: 20px;
 }
+
+
+/* หัวข้อ */
+h2 {
+    color: #FFDD99;
+    font-size: 28px;
+    text-align: center;
+    padding: 10px;
+}
+
+/* กล่องคำสั่งซื้อ */
+.order-container {
+    background-color: #8B5A2B;
+    padding: 20px;
+    border-radius: 15px;
+    width: 45%;
+    min-width: 400px;
+    
+}
+/* กล่องคำสั่งซื้อ */
+.order-container-1 {
+    background-color: #FFB92C;
+    padding: 20px;
+    border-radius: 15px;
+    width: 95%;
+    min-width: 400px;
+    margin-top: 40px;
+    margin-bottom: 10px;
+    border: 2px solid #ffffff;
+}
+
+/* กล่องรายการคำสั่งซื้อ */
+.order-item-1 {
+    background-color: #8B5A2B;
+    padding: 20px;
+    border-radius: 15px;
+    width: 45%;
+    min-width: 300px;
+}
+
+/* กล่องรายการคำสั่งซื้อ */
+.order-item {
+    display: flex;
+    background: #FFDA8F;
+    padding: 15px;
+    border-radius: 10px;
+    margin: 15px 0;
+    align-items: center;
+    justify-content: space-between;
+    height: 200px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+    border: 2px solid #000000;
+}
+
+/* ไอคอนเครป */
+.order-item-image {
+    width: 150px;
+    height: 120px;
+    border-radius: 10px;
+    object-fit: cover;
+    margin-right: 15px;
+}
+
+/* รายละเอียดคำสั่งซื้อ */
+.order-item-details {
+    flex: 1;
+    text-align: left;
+
+}
+.order-item-details p {
+    color: #000000;
+    font-size: 16px;
+    margin-bottom: -10px;
+}
+
+.order-item-details h3 {
+    color: #8B5A2B;
+    font-size: 18px;
+    margin-bottom: -13px;
+    margin-top: 2px;
+}
+/* สไตล์ของจำนวนชิ้น */
+.order-quantity {
+    font-size: 18px;
+    font-weight: bold;
+    color: red;
+    margin-bottom: 10px;
+}
+
+/* สไตล์ของราคา */
+.order-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: red;
+}
+/* สถานะและคิว */
+.order-item-status {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* ป้ายสถานะ */
+.status-label {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.status-label[data-status="confirmed"] {
+    background-color: #FFAA00;
+    color: white;
+}
+
+.status-label[data-status="completed"] {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* คิว */
+.queue-number1 {
+    flex: 1;
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffffff;
+    background: #ff9900;
+    padding: 5px 10px;
+    border-radius: 5px;
+
+}
+.queue-number {
+    font-size: 20px;
+    font-weight: bold;
+    color: #000000;
+    background: #ffe600;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+/* กล่องสรุปคำสั่งซื้อ */
+.order-summary {
+    background: #FBE6C2;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* หมายเลขคิว */
+.queue-number {
+    font-size: 22px;
+    font-weight: bold;
+    color: #ffffff;
+    background: #ff0000;
+    padding: 10px 20px;
+    border-radius: 100px;
+}
+
+/* สรุปราคารวม และจำนวนรวม */
+.order-total {
+    font-size: 18px;
+    font-weight: bold;
+    color: #8B5A2B;
+    margin: 5px 0;
+}
+
+/* สถานะ */
+.order-status {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* ป้ายสถานะ */
+.status-label {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+}
+
+/* สีของสถานะ */
+.status-pending {
+    background-color: #FFA500; /* สีส้ม */
+}
+
+.status-confirmed {
+    background-color: #007BFF; /* สีฟ้า */
+}
+
+.status-completed {
+    background-color: #28A745; /* สีเขียว */
+}
+
+.status-unknown {
+    background-color: #6C757D; /* สีเทา */
+}
+
+
+/* Responsive */
+@media (max-width: 768px) {
+    .order-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .order-item-image {
+        margin-bottom: 10px;
+    }
+
+    .order-item-status {
+        margin-top: 10px;
+    }
+}

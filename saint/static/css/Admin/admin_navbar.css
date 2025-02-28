@@ -7,7 +7,7 @@ body {
 
 /* Navbar */
 .navbar {
-    background: #FFDA90;
+    background: #ffffff;
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
@@ -15,7 +15,7 @@ body {
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.container {
+.container1 {
     display: flex;
     align-items: center;
     width: 100%;
@@ -31,10 +31,9 @@ body {
 .logo img {
     width: 150px; /* ปรับขนาดโลโก้ */
     height: auto;
-    margin-right: 300px;
-    margin-left: -500px;
+    margin-right: -150px;
+    margin-left: -5px;
 }
-
 /* Navigation Links */
 .nav-links {
     list-style: none;
@@ -88,12 +87,12 @@ body {
 }
 
 /* เมื่อกดแล้วพื้นหลังเปลี่ยนเป็นสีน้ำตาล */
-.nav-links .active .icon-background {
+.nav-links .active .icon-background1 {
     background-color: #905B28;
     color: #FFB92C;
 }
 /* เมื่อกดแล้วพื้นหลังเปลี่ยนเป็นสีน้ำตาล */
-.nav-links .active .icon-background1 {
+.nav-links .active .icon-background {
     background-color: #905B28;
     color: #FFB92C;
 }
@@ -117,8 +116,8 @@ body {
 .profile-section {
     display: flex;
     align-items: center;
-    margin-left: 400px;
-    margin-right: -450px;
+    margin-left: -10px;
+    margin-right: 20px;
 }
 
 .profile-link {
@@ -131,7 +130,7 @@ body {
         border-radius: 50%;
         overflow: hidden;
         border: 2px solid #5d4037;
-        background-color: #fffdfd;
+        background-color: #ffdc97;
     
 }
 /* ปรับขนาดไอคอน FontAwesome */
@@ -152,7 +151,7 @@ body {
     position: absolute;
     right: 10px;
     top: 150px;
-    background: white;
+    background: #ffdc97;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     min-width: 200px;
@@ -181,6 +180,7 @@ body {
     border-radius: 4px;
     margin-top: 5px;
 }
+
 
 /* ปรับขนาดปุ่มสั่งเครป */
 .order-box button img {
