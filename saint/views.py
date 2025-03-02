@@ -1,20 +1,24 @@
 from django.contrib.auth import login
 from .models import OTP, User
-from django.shortcuts import render, redirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.utils.timezone import now
-from django.shortcuts import render, redirect
 from .models import Flour, Filling, Topping, Sauce,Order,OrderGroup
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import json
 from django.contrib.auth import logout
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import Group
+import pandas as pd
+import plotly.express as px
+from django.db import connection
+from .models import OrderGroup, Order, Flour, Filling, Topping, Sauce
+from django.utils.timezone import localdate, now
+
+
 
 
 #-----------------------view สำหรับการกรอกอีเมล
@@ -78,20 +82,22 @@ def verify_otp(request):
     return render(request, "verify_otp.html")
 
 
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-
-
-
-
 def accept_order(request, queue_number):
     """ แอดมินกดรับออเดอร์ เปลี่ยนสถานะเป็น 'order_received' """
     if request.method == "POST":
-        group = get_object_or_404(OrderGroup, queue_number=queue_number)
+        today = localdate()  # ✅ กำหนดให้ดูเฉพาะคิวของวันปัจจุบัน
+
+        # ✅ กรองเฉพาะออเดอร์ของวันนี้
+        group = OrderGroup.objects.filter(queue_number=queue_number, created_at__date=today).first()
+
+        if not group:
+            return JsonResponse({"status": "error", "message": "ไม่พบคิวนี้ในวันนี้"}, status=404)
+
+        # ✅ เปลี่ยนสถานะเป็น 'order_received'
         group.status = "order_received"
         group.save()
 
-        # ส่งอีเมลแจ้งเตือนผู้ใช้
+        # ✅ ส่งอีเมลแจ้งเตือนผู้ใช้
         user_email = group.user.email if group.user else None
         if user_email:
             send_mail(
@@ -108,17 +114,26 @@ def accept_order(request, queue_number):
             "new_status": "order_received",
             "status_display": "รับออเดอร์แล้ว"
         })
+
     return JsonResponse({"status": "error", "message": "Method Not Allowed"}, status=405)
 
 
 def complete_order(request, queue_number):
     """ แอดมินกดออเดอร์เสร็จสิ้น เปลี่ยนสถานะเป็น 'completed' """
     if request.method == "POST":
-        group = get_object_or_404(OrderGroup, queue_number=queue_number)
+        today = localdate()  # ✅ ดึงวันที่ปัจจุบัน
+
+        # ✅ กรองเฉพาะคิวของวันนี้
+        group = OrderGroup.objects.filter(queue_number=queue_number, created_at__date=today).first()
+
+        if not group:
+            return JsonResponse({"status": "error", "message": "ไม่พบคิวนี้ในวันนี้"}, status=404)
+
+        # ✅ เปลี่ยนสถานะเป็น 'completed'
         group.status = "completed"
         group.save()
 
-        # ส่งอีเมลแจ้งเตือนผู้ใช้
+        # ✅ ส่งอีเมลแจ้งเตือนผู้ใช้
         user_email = group.user.email if group.user else None
         if user_email:
             send_mail(
@@ -130,6 +145,7 @@ def complete_order(request, queue_number):
             )
 
         return JsonResponse({"status": "success", "next_action": "mark_paid"})
+
     return JsonResponse({"status": "error", "message": "Method Not Allowed"}, status=405)
 
 
@@ -137,11 +153,19 @@ def complete_order(request, queue_number):
 def mark_as_paid(request, queue_number):
     """ แอดมินกดชำระเงินเสร็จสิ้น ไม่ลบจากฐานข้อมูลแต่ซ่อนจากหน้าหลัก """
     if request.method == "POST":
-        group = get_object_or_404(OrderGroup, queue_number=queue_number)
+        today = localdate()  # ✅ ดึงวันที่ปัจจุบัน
+
+        # ✅ กรองเฉพาะคิวของวันนี้
+        group = OrderGroup.objects.filter(queue_number=queue_number, created_at__date=today).first()
+
+        if not group:
+            return JsonResponse({"status": "error", "message": "ไม่พบคิวนี้ในวันนี้"}, status=404)
+
+        # ✅ เปลี่ยนสถานะเป็น 'paid'
         group.status = "paid"
         group.save()
 
-        # ส่งอีเมลขอบคุณลูกค้า
+        # ✅ ส่งอีเมลขอบคุณลูกค้า
         user_email = group.user.email if group.user else None
         if user_email:
             send_mail(
@@ -153,6 +177,7 @@ def mark_as_paid(request, queue_number):
             )
 
         return JsonResponse({"status": "success", "next_action": "hide"})
+
     return JsonResponse({"status": "error", "message": "Method Not Allowed"}, status=405)
 
 
@@ -245,29 +270,29 @@ def delete_order(request, order_id):
             return JsonResponse({"status": "error", "message": str(e)})
         
 
-        
-from django.utils.timezone import localdate
+    
 
 def confirm_order(request):
     if request.method == "POST":
+        # ✅ ดึงคำสั่งซื้อที่ยังไม่ได้ยืนยัน
         pending_orders = Order.objects.filter(order_group__isnull=True, user=request.user).order_by("created_at")
 
         if pending_orders.exists():
-            today = localdate()  # วันที่ปัจจุบัน
+            today = localdate()  # ✅ วันที่ปัจจุบัน
 
-            # ✅ ค้นหาหมายเลขคิวสูงสุดของวันนี้
+            # ✅ ค้นหาหมายเลขคิวล่าสุดของวันนี้
             last_queue = OrderGroup.objects.filter(created_at__date=today).order_by("-queue_number").first()
-            next_queue_number = (last_queue.queue_number + 1) if last_queue else 1  # ถ้ายังไม่มีออเดอร์ในวันนี้ ให้เริ่มจาก 1
+            next_queue_number = (last_queue.queue_number + 1) if last_queue else 1  # ✅ ถ้าวันนี้ยังไม่มีคิว ให้เริ่มที่ 1
 
-            # ✅ สร้าง OrderGroup พร้อมหมายเลขคิวที่ไม่ซ้ำกันในวันนี้
+            # ✅ สร้าง OrderGroup พร้อมหมายเลขคิวใหม่
             order_group = OrderGroup.objects.create(
                 status="confirmed",
                 queue_number=next_queue_number,
                 user=request.user,
-                created_at=now()  # บันทึกวันเวลาปัจจุบัน
+                created_at=now()
             )
 
-            # ✅ อัปเดต Order ให้เชื่อมกับ OrderGroup
+            # ✅ อัปเดต Order ที่รออยู่ให้เชื่อมกับ OrderGroup ใหม่
             pending_orders.update(order_group=order_group, user=request.user)
 
         return JsonResponse({"status": "success", "queue_number": next_queue_number})
@@ -276,15 +301,6 @@ def confirm_order(request):
 
 
 
-
-
-
-
-
-
-import json
-from django.shortcuts import render
-from .models import Order, Flour, Filling, Topping, Sauce
 
 def my_orders(request):
     """ ดึงคำสั่งซื้อของผู้ใช้ที่ได้รับการยืนยันหรือเสร็จสิ้น แต่ยังไม่ชำระเงิน """
@@ -367,13 +383,34 @@ def order_history(request):
                 "orders": []
             }
 
-        # แปลง ID ของวัตถุดิบให้เป็นชื่อ
-        order.flour = [Flour.objects.get(id=int(f)).name for f in json.loads(order.flour)]
-        order.filling = [Filling.objects.get(id=int(f)).name for f in json.loads(order.filling)] if order.filling else []
-        order.topping = [Topping.objects.get(id=int(t)).name for t in json.loads(order.topping)] if order.topping else []
-        order.sauce = [Sauce.objects.get(id=int(s)).name for s in json.loads(order.sauce)] if order.sauce else []
+        # ✅ ตรวจสอบว่ามีค่าใน order.flour หรือไม่
+        try:
+            flour_ids = json.loads(order.flour) if order.flour else []
+            order.flour = [Flour.objects.get(id=int(f)).name for f in flour_ids if Flour.objects.filter(id=int(f)).exists()]
+        except Exception as e:
+            order.flour = ["ไม่พบข้อมูลแป้ง"]  # 🔥 ถ้ามีปัญหา ให้แสดงข้อความ
 
-        # อัปเดตราคาทั้งหมดและจำนวนสินค้า
+        # ✅ ตรวจสอบว่า filling มีอยู่จริงไหม
+        try:
+            filling_ids = json.loads(order.filling) if order.filling else []
+            order.filling = [Filling.objects.get(id=int(f)).name for f in filling_ids if Filling.objects.filter(id=int(f)).exists()]
+        except Exception as e:
+            order.filling = []
+
+        # ✅ ตรวจสอบ topping และ sauce
+        try:
+            topping_ids = json.loads(order.topping) if order.topping else []
+            order.topping = [Topping.objects.get(id=int(t)).name for t in topping_ids if Topping.objects.filter(id=int(t)).exists()]
+        except Exception as e:
+            order.topping = []
+
+        try:
+            sauce_ids = json.loads(order.sauce) if order.sauce else []
+            order.sauce = [Sauce.objects.get(id=int(s)).name for s in sauce_ids if Sauce.objects.filter(id=int(s)).exists()]
+        except Exception as e:
+            order.sauce = []
+
+        # ✅ อัปเดตราคาทั้งหมดและจำนวนสินค้า
         order_groups[queue_number]["total_price"] += order.total_price
         order_groups[queue_number]["total_quantity"] += order.quantity
         order_groups[queue_number]["orders"].append(order)
@@ -430,7 +467,14 @@ def admin_order(request):
     return render(request, "Admin/admin_order.html", {"order_groups": formatted_orders})
 
 def get_order_details(request, queue_number):
-    group = get_object_or_404(OrderGroup, queue_number=queue_number)
+    today = localdate()  # ✅ วันที่ปัจจุบัน
+    
+    # ✅ กรองเฉพาะคิวของวันนี้
+    group = OrderGroup.objects.filter(queue_number=queue_number, created_at__date=today).first()
+
+    if not group:
+        return JsonResponse({"status": "error", "message": "ไม่พบข้อมูลคิวนี้"})
+
     orders = Order.objects.filter(order_group=group)
 
     formatted_orders = []
@@ -464,9 +508,7 @@ def get_order_details(request, queue_number):
 
 
 
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from .models import Flour, Filling, Topping, Sauce
+
 
 def add_menu(request):
     if request.method == "POST":
@@ -575,3 +617,107 @@ def delete_menu(request, item_id, category):
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     return JsonResponse({"status": "error", "message": "ไม่รองรับ method นี้"}, status=405)
+
+def Dashboard(request):
+    # ✅ Query กราฟ 1: จำนวนไส้แต่ละประเภทที่ขายออกไป (Top 10)
+    query_filling_sales = """
+        SELECT f.name, SUM(o.quantity) AS total_sold
+        FROM saint_order o
+        JOIN saint_filling f ON o.filling LIKE CONCAT('%', f.id, '%')
+        GROUP BY f.name
+        ORDER BY total_sold DESC
+        LIMIT 10;
+    """
+
+    with connection.cursor() as cursor:
+        cursor.execute(query_filling_sales)
+        rows_filling = cursor.fetchall()
+
+    df_filling = pd.DataFrame(rows_filling, columns=["name", "total_sold"])
+    df_filling["total_sold"] = df_filling["total_sold"].astype(int)
+
+    # ✅ ตกแต่งกราฟ Top 10 ไส้ที่ขายดีที่สุด
+    fig1 = px.bar(df_filling, 
+                x="name", 
+                y="total_sold",
+                title="🔝 Top 10 ไส้ที่ขายดีที่สุด",
+                text="total_sold",
+                labels={"name": "ชื่อไส้", "total_sold": "จำนวนขาย"},
+                color="name", 
+                color_discrete_sequence=px.colors.qualitative.Set2)
+
+    fig1.update_traces(textposition="outside", marker=dict(line=dict(width=1.5, color="black")))
+    fig1.update_layout(
+        xaxis_title="ประเภทไส้",
+        yaxis_title="จำนวนขาย",
+        title_font_size=22,
+        xaxis_tickangle=-45,
+        font=dict(size=14),
+        plot_bgcolor="rgba(0,0,0,0)",
+        bargap=0.3,
+        bargroupgap=0.1
+    )
+
+    plot1_html = fig1.to_html(full_html=False)
+
+    # ✅ Query กราฟ 2: ยอดขายรวมตามวันที่ (เลือกช่วงเวลา)
+    time_filter = request.GET.get("filter", "daily")
+
+    if time_filter == "daily":
+        query_sales = """
+            SELECT DATE(created_at) AS period, SUM(total_price) AS total_sales
+            FROM saint_order
+            GROUP BY DATE(created_at)
+            ORDER BY period;
+        """
+    elif time_filter == "weekly":
+        query_sales = """
+            SELECT YEARWEEK(created_at) AS period, SUM(total_price) AS total_sales
+            FROM saint_order
+            GROUP BY YEARWEEK(created_at)
+            ORDER BY period;
+        """
+    elif time_filter == "monthly":
+        query_sales = """
+            SELECT DATE_FORMAT(created_at, '%%Y-%%m') AS period, SUM(total_price) AS total_sales
+            FROM saint_order
+            GROUP BY DATE_FORMAT(created_at, '%%Y-%%m')
+            ORDER BY period;
+        """
+
+    with connection.cursor() as cursor:
+        cursor.execute(query_sales)
+        rows_sales = cursor.fetchall()
+
+    df_sales = pd.DataFrame(rows_sales, columns=["period", "total_sales"])
+    df_sales["total_sales"] = df_sales["total_sales"].astype(float)
+
+    # ✅ ตกแต่งกราฟยอดขายรวม
+    fig2 = px.bar(df_sales, 
+                x="period", 
+                y="total_sales",
+                title="📊 ยอดขายรวมตามช่วงเวลา",
+                text="total_sales",
+                labels={"period": "ช่วงเวลา", "total_sales": "ยอดขายรวม"},
+                color="total_sales",
+                color_continuous_scale="Viridis")
+
+    fig2.update_traces(texttemplate='%{text:.2f}', textposition="outside", marker=dict(line=dict(width=1.5, color="black")))
+    fig2.update_layout(
+        xaxis_title="ช่วงเวลา",
+        yaxis_title="ยอดขายรวม (บาท)",
+        title_font_size=22,
+        xaxis_tickangle=-30,
+        font=dict(size=14),
+        plot_bgcolor="rgba(0,0,0,0)",
+        bargap=0.3,
+        bargroupgap=0.1
+    )
+
+    plot2_html = fig2.to_html(full_html=False)
+
+    return render(request, 'Admin/Dashboard.html', {
+        'plot1_html': plot1_html,
+        'plot2_html': plot2_html,
+        'current_filter': time_filter
+    })

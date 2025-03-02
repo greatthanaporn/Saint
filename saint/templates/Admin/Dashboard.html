@@ -1,14 +1,35 @@
 {% extends 'Admin/admin_navbar.html' %}
 {% load static %}
 
-{% block title %}สั่งเครป{% endblock %}
-
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/Admin/Dashboard.css' %}">
-{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
     <div class="container">
+        <h1>จำนวนของไส้แต่ละประเภท</h1>
 
+        <!-- ✅ กล่องกราฟ 1 -->
+        <div class="chart-container">
+            <h2>Top 10 ไส้ที่ขายดีที่สุด</h2>
+            <div>{{ plot1_html|safe }}</div>
+        </div>
+
+        <!-- ✅ กล่องกราฟ 2 -->
+        <div class="chart-container">
+            <h2>ยอดขายรวม</h2>
+            <label for="sales_filter">กรองยอดขายตาม:</label>
+            <select id="sales_filter" onchange="updateChart()">
+                <option value="daily" {% if current_filter == "daily" %}selected{% endif %}>รายวัน</option>
+                <option value="weekly" {% if current_filter == "weekly" %}selected{% endif %}>รายสัปดาห์</option>
+                <option value="monthly" {% if current_filter == "monthly" %}selected{% endif %}>รายเดือน</option>
+            </select>
+            <div>{{ plot2_html|safe }}</div>
+        </div>
     </div>
+
+    <script>
+        function updateChart() {
+            var filter = document.getElementById("sales_filter").value;
+            window.location.href = "?filter=" + filter;
+        }
+    </script>
 {% endblock %}

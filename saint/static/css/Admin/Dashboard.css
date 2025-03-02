@@ -10,12 +10,58 @@ body {
     flex-direction: column;
 }
 
-/* ทำให้ Container เต็มหน้าจอ */
+/* Container หลัก */
 .container {
-    flex: 1; /* ทำให้ container เต็มพื้นที่ */
+    flex: 1;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    margin-top: 20px;   
+    margin-top: 20px;
 }
 
+/* สไตล์ของกราฟ */
+.chart-container {
+    width: 80%;
+    max-width: 1000px;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    margin-bottom: 30px;
+}
+
+/* หัวข้อหลัก */
+h1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #2C1E1E;
+}
+
+/* หัวข้อรอง */
+h2 {
+    font-size: 22px;
+    color: #4A332D;
+}
+
+/* Select Filter */
+select {
+    padding: 8px 15px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #A06A36;
+    background-color: #FFD580;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+/* ทำให้ Select เปลี่ยนสีเมื่อ Hover */
+select:hover {
+    background-color: #FFC04C;
+}
+
+/* ข้อความตัวเลือก */
+label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #2C1E1E;
+}

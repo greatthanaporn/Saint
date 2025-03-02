@@ -26,10 +26,8 @@ urlpatterns = [
 
 
 
-
-
     #Admin
-    path('Dashboard/', views.Dashboard, name='Dashboard'),
+    path('Dashboard/', views.Dashboard, name='Dashboard'),  # ✅ Dashboard ใช้ views.Dashboard
     path('admin-order/', views.admin_order, name='admin_order'),
     path('add-menu/', views.add_menu, name='add_menu'),
     path('edit-menu/', views.edit_menu, name='edit_menu'),
