@@ -74,17 +74,24 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',  # ใช้ MySQL
+#         'NAME': 'saint',  # ชื่อฐานข้อมูล
+#         'USER': 'root',  # ชื่อผู้ใช้ MySQL
+#         'PASSWORD': 'root',  # รหัสผ่าน MySQL
+#         'HOST': 'localhost',  # ถ้ารันบนเครื่องตัวเองใช้ localhost
+#         'PORT': '3306',  # พอร์ตเริ่มต้นของ MySQL คือ 3306
+#         'OPTIONS': {
+#             'charset': 'utf8mb4',  # รองรับภาษาไทยและอักขระพิเศษ
+#         },
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # ใช้ MySQL
-        'NAME': 'saint',  # ชื่อฐานข้อมูล
-        'USER': 'root',  # ชื่อผู้ใช้ MySQL
-        'PASSWORD': '1234',  # รหัสผ่าน MySQL
-        'HOST': 'localhost',  # ถ้ารันบนเครื่องตัวเองใช้ localhost
-        'PORT': '3306',  # พอร์ตเริ่มต้นของ MySQL คือ 3306
-        'OPTIONS': {
-            'charset': 'utf8mb4',  # รองรับภาษาไทยและอักขระพิเศษ
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / "db.sqlite3",
     }
 }
 

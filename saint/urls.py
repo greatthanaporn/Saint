@@ -33,6 +33,8 @@ urlpatterns = [
     path('edit-menu/', views.edit_menu, name='edit_menu'),
     path('delete-menu/<int:item_id>/<str:category>/', views.delete_menu, name='delete_menu'),
     path('get-order-details/<int:queue_number>/', views.get_order_details, name='get_order_details'),
+    path('admin-order-history/', views.order_history_admin, name="order_history_admin"),
+
 
     # เส้นทางอื่น ๆ
 ]

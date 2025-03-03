@@ -5,24 +5,27 @@
 
 {% block content %}
     <div class="container">
-        <h1>จำนวนของไส้แต่ละประเภท</h1>
+        <h1>📊 Dashboard รายงานยอดขาย</h1>
 
-        <!-- ✅ กล่องกราฟ 1 -->
-        <div class="chart-container">
-            <h2>Top 10 ไส้ที่ขายดีที่สุด</h2>
-            <div>{{ plot1_html|safe }}</div>
+        <!-- ✅ Card Box แสดงยอดขายรวม -->
+        <div class="total-sales-box" style="background: #007bff; color: white; padding: 40px; border-radius: 5px; text-align: center; font-size: 24px; font-weight: bold; margin-bottom: 2px;">
+            ยอดขายรวม: {{ total_sales_value|floatformat:2 }} บาท
         </div>
 
-        <!-- ✅ กล่องกราฟ 2 -->
-        <div class="chart-container">
-            <h2>ยอดขายรวม</h2>
-            <label for="sales_filter">กรองยอดขายตาม:</label>
+        <!-- ✅ กราฟยอดขาย -->
+        <div class="chart-container" style="background: #f9f9f9; padding: 15px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
+            <label for="sales_filter">เลือกช่วงเวลา:</label>
             <select id="sales_filter" onchange="updateChart()">
                 <option value="daily" {% if current_filter == "daily" %}selected{% endif %}>รายวัน</option>
                 <option value="weekly" {% if current_filter == "weekly" %}selected{% endif %}>รายสัปดาห์</option>
                 <option value="monthly" {% if current_filter == "monthly" %}selected{% endif %}>รายเดือน</option>
             </select>
-            <div>{{ plot2_html|safe }}</div>
+            
+            {% if plot2_html %}
+                <div>{{ plot2_html|safe }}</div>
+            {% else %}
+                <p class="text-muted">ไม่มีข้อมูลยอดขายในช่วงเวลานี้</p>
+            {% endif %}
         </div>
     </div>
 

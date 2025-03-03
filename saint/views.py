@@ -618,106 +618,303 @@ def delete_menu(request, item_id, category):
 
     return JsonResponse({"status": "error", "message": "ไม่รองรับ method นี้"}, status=405)
 
+# def Dashboard(request):
+#     # ✅ Query กราฟ 1: จำนวนไส้แต่ละประเภทที่ขายออกไป (Top 10)
+#     query_filling_sales = """
+#         SELECT f.name, SUM(o.quantity) AS total_sold
+#         FROM saint_order o
+#         JOIN saint_filling f ON o.filling LIKE CONCAT('%', f.id, '%')
+#         GROUP BY f.name
+#         ORDER BY total_sold DESC
+#         LIMIT 10;
+#     """
+
+#     with connection.cursor() as cursor:
+#         cursor.execute(query_filling_sales)
+#         rows_filling = cursor.fetchall()
+
+#     df_filling = pd.DataFrame(rows_filling, columns=["name", "total_sold"])
+#     df_filling["total_sold"] = df_filling["total_sold"].astype(int)
+
+#     # ✅ ตกแต่งกราฟ Top 10 ไส้ที่ขายดีที่สุด
+#     fig1 = px.bar(df_filling, 
+#                 x="name", 
+#                 y="total_sold",
+#                 title="🔝 Top 10 ไส้ที่ขายดีที่สุด",
+#                 text="total_sold",
+#                 labels={"name": "ชื่อไส้", "total_sold": "จำนวนขาย"},
+#                 color="name", 
+#                 color_discrete_sequence=px.colors.qualitative.Set2)
+
+#     fig1.update_traces(textposition="outside", marker=dict(line=dict(width=1.5, color="black")))
+#     fig1.update_layout(
+#         xaxis_title="ประเภทไส้",
+#         yaxis_title="จำนวนขาย",
+#         title_font_size=22,
+#         xaxis_tickangle=-45,
+#         font=dict(size=14),
+#         plot_bgcolor="rgba(0,0,0,0)",
+#         bargap=0.3,
+#         bargroupgap=0.1
+#     )
+
+#     plot1_html = fig1.to_html(full_html=False)
+
+#     # ✅ Query กราฟ 2: ยอดขายรวมตามวันที่ (เลือกช่วงเวลา)
+#     time_filter = request.GET.get("filter", "daily")
+
+#     if time_filter == "daily":
+#         query_sales = """
+#             SELECT DATE(created_at) AS period, SUM(total_price) AS total_sales
+#             FROM saint_order
+#             GROUP BY DATE(created_at)
+#             ORDER BY period;
+#         """
+#     elif time_filter == "weekly":
+#         query_sales = """
+#             SELECT YEARWEEK(created_at) AS period, SUM(total_price) AS total_sales
+#             FROM saint_order
+#             GROUP BY YEARWEEK(created_at)
+#             ORDER BY period;
+#         """
+#     elif time_filter == "monthly":
+#         query_sales = """
+#             SELECT DATE_FORMAT(created_at, '%%Y-%%m') AS period, SUM(total_price) AS total_sales
+#             FROM saint_order
+#             GROUP BY DATE_FORMAT(created_at, '%%Y-%%m')
+#             ORDER BY period;
+#         """
+
+#     with connection.cursor() as cursor:
+#         cursor.execute(query_sales)
+#         rows_sales = cursor.fetchall()
+
+#     df_sales = pd.DataFrame(rows_sales, columns=["period", "total_sales"])
+#     df_sales["total_sales"] = df_sales["total_sales"].astype(float)
+
+#     # ✅ ตกแต่งกราฟยอดขายรวม
+#     fig2 = px.bar(df_sales, 
+#                 x="period", 
+#                 y="total_sales",
+#                 title="📊 ยอดขายรวมตามช่วงเวลา",
+#                 text="total_sales",
+#                 labels={"period": "ช่วงเวลา", "total_sales": "ยอดขายรวม"},
+#                 color="total_sales",
+#                 color_continuous_scale="Viridis")
+
+#     fig2.update_traces(texttemplate='%{text:.2f}', textposition="outside", marker=dict(line=dict(width=1.5, color="black")))
+#     fig2.update_layout(
+#         xaxis_title="ช่วงเวลา",
+#         yaxis_title="ยอดขายรวม (บาท)",
+#         title_font_size=22,
+#         xaxis_tickangle=-30,
+#         font=dict(size=14),
+#         plot_bgcolor="rgba(0,0,0,0)",
+#         bargap=0.3,
+#         bargroupgap=0.1
+#     )
+
+#     plot2_html = fig2.to_html(full_html=False)
+
+#     return render(request, 'Admin/Dashboard.html', {
+#         'plot1_html': plot1_html,
+#         'plot2_html': plot2_html,
+#         'current_filter': time_filter
+#     })
+
+
+
+def order_history_admin(request):
+    """ แสดงประวัติคำสั่งซื้อที่ชำระเงินเสร็จสิ้น พร้อมวันที่สั่งซื้อ """
+    
+    # ดึงเฉพาะคำสั่งซื้อที่ชำระเงินเสร็จสิ้น
+    paid_orders = OrderGroup.objects.filter(status="paid").order_by("-created_at")
+
+    formatted_orders = []
+    status_mapping = {
+        "pending": "รอดำเนินการ",
+        "order_received": "รับออเดอร์แล้ว",
+        "confirmed": "กำลังดำเนินการ",
+        "completed": "เสร็จสิ้น รอชำระเงิน",
+        "paid": "ชำระเงินเสร็จสิ้น",
+    }
+
+    for group in paid_orders:
+        orders = Order.objects.filter(order_group=group)
+        total_price = sum(order.total_price for order in orders)
+        total_quantity = sum(order.quantity for order in orders)
+
+        formatted_order_list = []
+        for order in orders:
+            formatted_order_list.append({
+                "flour": [Flour.objects.get(id=int(f)).name for f in json.loads(order.flour)],
+                "filling": [Filling.objects.get(id=int(f)).name for f in json.loads(order.filling)] if order.filling else [],
+                "topping": [Topping.objects.get(id=int(t)).name for t in json.loads(order.topping)] if order.topping else [],
+                "sauce": [Sauce.objects.get(id=int(s)).name for s in json.loads(order.sauce)] if order.sauce else [],
+                "quantity": order.quantity,
+                "total_price": order.total_price,
+            })
+
+        formatted_orders.append({
+            "queue_number": group.queue_number,
+            "user_email": group.user.email,
+            "status": group.status,
+            "status_display": status_mapping.get(group.status, "ไม่ทราบสถานะ"),
+            "total_price": total_price,
+            "total_quantity": total_quantity,
+            "created_at": group.created_at.strftime("%d/%m/%Y"),  # เพิ่มวันที่สั่งซื้อ
+            "orders": formatted_order_list,
+        })
+
+    return render(request, "Admin/order_history_admin.html", {"formatted_orders": formatted_orders})
+
+
+import pandas as pd
+import plotly.express as px
+from django.db import connection
+from django.shortcuts import render
+from django.utils.timezone import localdate, timedelta
+
 def Dashboard(request):
-    # ✅ Query กราฟ 1: จำนวนไส้แต่ละประเภทที่ขายออกไป (Top 10)
-    query_filling_sales = """
-        SELECT f.name, SUM(o.quantity) AS total_sold
-        FROM saint_order o
-        JOIN saint_filling f ON o.filling LIKE CONCAT('%', f.id, '%')
-        GROUP BY f.name
-        ORDER BY total_sold DESC
-        LIMIT 10;
-    """
+    # ✅ รับค่าตัวกรองจาก dropdown
+    time_filter = request.GET.get("filter", "weekly")  
+    current_year = localdate().year
+
+    # ✅ Query ยอดขายรวมทั้งหมดตามช่วงเวลาที่เลือก
+    if time_filter == "daily":
+        start_date = localdate()
+        query_total_sales = f"""
+            SELECT COALESCE(SUM(total_price), 0) 
+            FROM saint_order
+            WHERE DATE(created_at) = '{start_date}';
+        """
+    elif time_filter == "weekly":
+        start_date = localdate() - timedelta(days=6)
+        query_total_sales = f"""
+            SELECT COALESCE(SUM(total_price), 0) 
+            FROM saint_order
+            WHERE DATE(created_at) BETWEEN '{start_date}' AND '{localdate()}';
+        """
+    elif time_filter == "monthly":
+        query_total_sales = f"""
+            SELECT COALESCE(SUM(total_price), 0) 
+            FROM saint_order
+            WHERE strftime('%Y', created_at) = '{current_year}';
+        """
+    else:
+        total_sales_value = 0
 
     with connection.cursor() as cursor:
-        cursor.execute(query_filling_sales)
-        rows_filling = cursor.fetchall()
+        cursor.execute(query_total_sales)
+        total_sales_value = cursor.fetchone()[0]
 
-    df_filling = pd.DataFrame(rows_filling, columns=["name", "total_sold"])
-    df_filling["total_sold"] = df_filling["total_sold"].astype(int)
-
-    # ✅ ตกแต่งกราฟ Top 10 ไส้ที่ขายดีที่สุด
-    fig1 = px.bar(df_filling, 
-                x="name", 
-                y="total_sold",
-                title="🔝 Top 10 ไส้ที่ขายดีที่สุด",
-                text="total_sold",
-                labels={"name": "ชื่อไส้", "total_sold": "จำนวนขาย"},
-                color="name", 
-                color_discrete_sequence=px.colors.qualitative.Set2)
-
-    fig1.update_traces(textposition="outside", marker=dict(line=dict(width=1.5, color="black")))
-    fig1.update_layout(
-        xaxis_title="ประเภทไส้",
-        yaxis_title="จำนวนขาย",
-        title_font_size=22,
-        xaxis_tickangle=-45,
-        font=dict(size=14),
-        plot_bgcolor="rgba(0,0,0,0)",
-        bargap=0.3,
-        bargroupgap=0.1
-    )
-
-    plot1_html = fig1.to_html(full_html=False)
-
-    # ✅ Query กราฟ 2: ยอดขายรวมตามวันที่ (เลือกช่วงเวลา)
-    time_filter = request.GET.get("filter", "daily")
-
+    # ✅ Query สำหรับสร้างกราฟยอดขายรวม
     if time_filter == "daily":
-        query_sales = """
+        query_sales = f"""
             SELECT DATE(created_at) AS period, SUM(total_price) AS total_sales
             FROM saint_order
+            WHERE DATE(created_at) = '{start_date}'
+            GROUP BY DATE(created_at);
+        """
+    elif time_filter == "weekly":
+        query_sales = f"""
+            SELECT DATE(created_at) AS period, SUM(total_price) AS total_sales
+            FROM saint_order
+            WHERE DATE(created_at) BETWEEN '{start_date}' AND '{localdate()}'
             GROUP BY DATE(created_at)
             ORDER BY period;
         """
-    elif time_filter == "weekly":
-        query_sales = """
-            SELECT YEARWEEK(created_at) AS period, SUM(total_price) AS total_sales
-            FROM saint_order
-            GROUP BY YEARWEEK(created_at)
-            ORDER BY period;
-        """
     elif time_filter == "monthly":
-        query_sales = """
-            SELECT DATE_FORMAT(created_at, '%%Y-%%m') AS period, SUM(total_price) AS total_sales
+        query_sales = f"""
+            SELECT strftime('%Y-%m', created_at) AS period, SUM(total_price) AS total_sales
             FROM saint_order
-            GROUP BY DATE_FORMAT(created_at, '%%Y-%%m')
+            WHERE strftime('%Y', created_at) = '{current_year}'
+            GROUP BY period
             ORDER BY period;
         """
+    else:
+        return render(request, 'Admin/Dashboard.html', {
+            'total_sales_value': total_sales_value,
+            'plot2_html': "<p>ไม่รองรับตัวกรองนี้</p>",
+            'current_filter': time_filter
+        })
 
     with connection.cursor() as cursor:
         cursor.execute(query_sales)
         rows_sales = cursor.fetchall()
 
+    # ✅ จัดการข้อมูลยอดขาย
     df_sales = pd.DataFrame(rows_sales, columns=["period", "total_sales"])
-    df_sales["total_sales"] = df_sales["total_sales"].astype(float)
 
-    # ✅ ตกแต่งกราฟยอดขายรวม
-    fig2 = px.bar(df_sales, 
-                x="period", 
-                y="total_sales",
-                title="📊 ยอดขายรวมตามช่วงเวลา",
-                text="total_sales",
-                labels={"period": "ช่วงเวลา", "total_sales": "ยอดขายรวม"},
-                color="total_sales",
-                color_continuous_scale="Viridis")
+    if time_filter == "daily" or time_filter == "weekly":
+        df_sales["period"] = pd.to_datetime(df_sales["period"])
+        
+        if time_filter == "weekly":
+            date_range = pd.date_range(start=start_date, end=localdate(), freq="D")
+            df_sales = df_sales.set_index("period").reindex(date_range, fill_value=0).reset_index()
+            df_sales.columns = ["period", "total_sales"]
 
-    fig2.update_traces(texttemplate='%{text:.2f}', textposition="outside", marker=dict(line=dict(width=1.5, color="black")))
-    fig2.update_layout(
-        xaxis_title="ช่วงเวลา",
-        yaxis_title="ยอดขายรวม (บาท)",
-        title_font_size=22,
-        xaxis_tickangle=-30,
-        font=dict(size=14),
-        plot_bgcolor="rgba(0,0,0,0)",
-        bargap=0.3,
-        bargroupgap=0.1
-    )
+        # ✅ ปรับแต่งกราฟให้สวยขึ้น
+        fig2 = px.bar(df_sales, 
+                      x="period",  
+                      y="total_sales",
+                      title="📊 ยอดขายรวม",
+                      text="total_sales",
+                      labels={"period": "วันที่", "total_sales": "ยอดขายรวม (บาท)"},
+                      color="total_sales",
+                      color_continuous_scale="Blues",
+                      width=900,
+                      height=500)
+
+        fig2.update_traces(texttemplate='%{text:.2f}', textposition="outside")
+        fig2.update_layout(
+            xaxis_title="วันที่",
+            yaxis_title="ยอดขายรวม (บาท)",
+            title_font_size=20,
+            xaxis_tickangle=-45,
+            plot_bgcolor="rgba(240, 240, 240, 0.8)",
+            bargap=0.2,
+        )
+
+    elif time_filter == "monthly":
+        month_labels = pd.date_range(start=f"{current_year}-01-01", 
+                                     end=f"{current_year}-12-01", 
+                                     freq="MS").strftime('%Y-%m')
+
+        df_sales = df_sales.set_index("period").reindex(month_labels, fill_value=0).reset_index()
+        df_sales.columns = ["period", "total_sales"]
+        df_sales["period"] = pd.to_datetime(df_sales["period"])
+        df_sales["month_name"] = df_sales["period"].dt.strftime('%B')
+
+        month_order = ["January", "February", "March", "April", "May", "June", 
+                       "July", "August", "September", "October", "November", "December"]
+
+        fig2 = px.bar(df_sales, 
+                      x="month_name",  
+                      y="total_sales",
+                      title="📊 ยอดขายรวม",
+                      text="total_sales",
+                      labels={"month_name": "เดือน", "total_sales": "ยอดขายรวม (บาท)"},
+                      color="total_sales",
+                      color_continuous_scale="Blues",
+                      category_orders={"month_name": month_order},
+                      width=900,
+                      height=500)
+
+        fig2.update_traces(texttemplate='%{text:.2f}', textposition="outside")
+        fig2.update_layout(
+            xaxis_title="เดือน",
+            yaxis_title="ยอดขายรวม (บาท)",
+            title_font_size=20,
+            xaxis_tickangle=-30,
+            plot_bgcolor="rgba(240, 240, 240, 0.8)",
+            bargap=0.2,
+        )
 
     plot2_html = fig2.to_html(full_html=False)
 
     return render(request, 'Admin/Dashboard.html', {
-        'plot1_html': plot1_html,
+        'total_sales_value': total_sales_value,
         'plot2_html': plot2_html,
         'current_filter': time_filter
     })

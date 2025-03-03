@@ -1,0 +1,144 @@
+{% extends 'Admin/admin_navbar.html' %}
+
+{% block title %}ประวัติการสั่งซื้อ{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>ประวัติการสั่งซื้อทั้งหมด</h2>
+    <table class="order-table">
+        <thead>
+            <tr>
+                <th>คิวที่</th>
+                <th>อีเมลลูกค้า</th>
+                <th>จำนวนรวม</th>
+                <th>ราคารวม</th>
+                <th>วันที่สั่งซื้อ</th> <!-- เพิ่มคอลัมน์วันที่สั่งซื้อ -->
+                <th>สถานะ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in formatted_orders %}
+            <tr class="main-row">
+                <td>{{ group.queue_number }}</td>
+                <td>{{ group.user_email }}</td>
+                <td>{{ group.total_quantity }} ชิ้น</td>
+                <td>{{ group.total_price }} ฿</td>
+                <td>{{ group.created_at }}</td> <!-- แสดงวันที่สั่งซื้อ -->
+                <td class="status {{ group.status }}">{{ group.status_display }}</td>
+            </tr>
+            {% for order in group.orders %}
+            <tr class="order-detail">
+                <td colspan="6">
+                    <strong>แป้ง:</strong> {{ order.flour|join:", " }},
+                    <strong>แยม:</strong> {{ order.filling|join:", " }},
+                    <strong>ท็อปปิ้ง:</strong> {{ order.topping|join:", " }},
+                    <strong>ซอส:</strong> {{ order.sauce|join:", " }},
+                    <strong>จำนวน:</strong> {{ order.quantity }} ชิ้น,
+                    <strong>ราคา:</strong> {{ order.total_price }} ฿
+                </td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+/* พื้นหลังของทั้งหน้า */
+body {
+    background: linear-gradient(to bottom, #905B28, #FFB92C);
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    font-family: 'Kanit', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* กล่องเนื้อหา */
+.container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    width: 90%;
+    max-width: 1000px;
+}
+
+/* หัวข้อ */
+h2 {
+    color: #6D4C41;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* ตาราง */
+.order-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #FFFAF0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* หัวตาราง */
+.order-table th {
+    background: #D2691E;
+    color: white;
+    padding: 12px;
+    font-size: 16px;
+    text-transform: uppercase;
+}
+
+/* รายการหลัก */
+.order-table .main-row td {
+    background: #FFF5E1;
+    font-size: 14px;
+    padding: 12px;
+    border-bottom: 2px solid #D2691E;
+}
+
+/* รายการย่อย */
+.order-table .order-detail td {
+    background: #FFF;
+    font-size: 13px;
+    padding: 10px;
+    border-bottom: 1px solid #D2691E;
+    text-align: left;
+}
+
+/* สถานะคำสั่งซื้อ */
+.status {
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 5px;
+    display: inline-block;
+    text-align: center;
+    font-size: 14px;
+    color:#28a745;
+}
+
+/* กำหนดสีของสถานะต่าง ๆ */
+.status.paid {
+    background: #28a745;
+}
+
+
+
+/* ปรับขนาดตัวอักษรบนมือถือ */
+@media (max-width: 768px) {
+    .order-table th, .order-table td {
+        font-size: 12px;
+        padding: 10px;
+    }
+
+    .status {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+}
+</style>
+{% endblock %}

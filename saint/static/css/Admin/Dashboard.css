@@ -1,67 +1,79 @@
-/* พื้นหลังของทั้งหน้า */
-body {
-    background: linear-gradient(to bottom, #905B28, #FFB92C); /* สีไล่ระดับ */
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    font-family: 'Kanit', sans-serif;
-    min-height: 100vh; /* ป้องกันปัญหาพื้นหลังขาด */
-    display: flex;
-    flex-direction: column;
-}
-
-/* Container หลัก */
+/* ✅ ตั้งค่าสไตล์พื้นฐานของ Dashboard */
 .container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 20px;
-}
-
-/* สไตล์ของกราฟ */
-.chart-container {
-    width: 80%;
-    max-width: 1000px;
-    background: white;
+    max-width: 1200px;
+    margin: auto;
     padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    margin-bottom: 30px;
 }
 
-/* หัวข้อหลัก */
-h1 {
+/* ✅ สไตล์สำหรับ Card Box แสดงยอดขายรวม */
+.total-sales-box {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
     font-size: 28px;
     font-weight: bold;
-    color: #2C1E1E;
+    margin-bottom: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* หัวข้อรอง */
-h2 {
-    font-size: 22px;
-    color: #4A332D;
+/* ✅ สไตล์สำหรับ Chart Container */
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    transition: all 0.3s ease-in-out;
 }
 
-/* Select Filter */
-select {
-    padding: 8px 15px;
+.chart-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* ✅ สไตล์ของ Dropdown (เลือกช่วงเวลา) */
+label {
+    font-weight: bold;
+    color: #333;
+    margin-right: 10px;
+}
+
+#sales_filter {
+    padding: 10px;
     font-size: 16px;
     border-radius: 5px;
-    border: 1px solid #A06A36;
-    background-color: #FFD580;
+    border: 1px solid #007bff;
+    background: #f8f9fa;
     cursor: pointer;
-    margin-bottom: 20px;
+    transition: all 0.3s;
 }
 
-/* ทำให้ Select เปลี่ยนสีเมื่อ Hover */
-select:hover {
-    background-color: #FFC04C;
+#sales_filter:hover {
+    background: #007bff;
+    color: white;
 }
 
-/* ข้อความตัวเลือก */
-label {
-    font-size: 16px;
+/* ✅ สไตล์ของตัวอักษรใน Dashboard */
+h1 {
+    font-size: 32px;
     font-weight: bold;
-    color: #2C1E1E;
+    color: #333;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0056b3;
+    margin-bottom: 10px;
+}
+
+/* ✅ สไตล์ของข้อความไม่มีข้อมูล */
+.text-muted {
+    font-size: 16px;
+    color: #888;
+    font-style: italic;
 }

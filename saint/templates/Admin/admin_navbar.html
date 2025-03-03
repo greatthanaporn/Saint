@@ -43,13 +43,21 @@
                     ออเดอร์
                 </a>
             </li>
-            <li>
+            
                 <li>
                     <a href="{% url 'add_menu' %}" class="nav-item {% if request.resolver_match.url_name == 'add_menu' %}active{% endif %}">
                         <div class="icon-background1">
                             <img src="{% static 'images/ee1.png' %}" alt="My Orders">
                         </div>
                         เพิ่มเมนู
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'order_history_admin' %}" class="nav-item {% if request.resolver_match.url_name == 'order_history_admin' %}active{% endif %}">
+                        <div class="icon-background">
+                            <i class="fas fa-history"></i> 
+                        </div>
+                        ประวัติคำสั่งซื้อ
                     </a>
                 </li>
         </ul>
