@@ -23,13 +23,7 @@
                     <p><strong>เลือกท็อปปิ้ง:</strong> {{ order.topping|default:"-" }}</p>
                     <p><strong>เลือกซอส:</strong> {{ order.sauce|default:"-" }}</p>                    
                     <p><strong>หมายเหตุ:</strong> {{ order.note|default:"-" }}</p>
-                    <p><strong>จำนวน:</strong>
-                        <select class="quantity-select" data-order-id="{{ order.id }}">
-                            {% for i in "12345" %}
-                                <option value="{{ i }}" {% if order.quantity == i %}selected{% endif %}>{{ i }}</option>
-                            {% endfor %}
-                        </select>
-                    </p>
+                    <p><strong>จำนวน:</strong>{{ order.quantity|default:"-" }}</p>
                     <p><strong>ราคา:</strong> <span class="order-price">{{ order.total_price }}</span> ฿</p>
                 </div>
                 <div class="cart-item-actions">
@@ -67,6 +61,7 @@
     
             <form id="orderForm">
                 {% csrf_token %}
+                
     
                 <div class="menu-section">
                     <h3>เลือกแป้ง</h3>
@@ -120,8 +115,9 @@
     
                 <div class="menu-section">
                     <label><strong>ราคารวม:</strong></label>
-                    <span id="totalPrice">0</span> ฿
+                    <span id="totalPriceDisplay">0</span> ฿
                 </div>
+                
     
                 <button type="submit" class="confirm-order">เพิ่มลงตะกร้า</button>
                 <button type="button" id="closeOrderPopup" class="cancel-popup">ยกเลิก</button>
@@ -219,116 +215,163 @@
             updateCartSummary();
         });
         document.addEventListener("DOMContentLoaded", function () {
-            const orderPopup = document.getElementById("orderPopup");
-            const overlay = document.querySelector(".popup-overlay");
-            const openPopupBtn = document.getElementById("openOrderPopup");
-            const closePopupBtn = document.getElementById("closeOrderPopup");
-            const totalPriceDisplay = document.getElementById("totalPrice");
-            const quantityInput = document.getElementById("quantity");
-            const checkboxes = document.querySelectorAll(".menu-item");
+    const orderPopup = document.getElementById("orderPopup");
+    const overlay = document.querySelector(".popup-overlay");
+    const openPopupBtn = document.getElementById("openOrderPopup");
+    const closePopupBtn = document.getElementById("closeOrderPopup");
+    const totalPriceDisplay = document.getElementById("totalPriceDisplay");
+    const quantityInput = document.getElementById("quantity");
+    const checkboxes = document.querySelectorAll(".menu-item");
 
-            // เปิดป๊อปอัพเมื่อคลิกปุ่ม
-            openPopupBtn.addEventListener("click", function () {
-                orderPopup.style.display = "block";
-                overlay.style.display = "block";
-            });
+    // ✅ เปิดป๊อปอัพ
+    function openPopup() {
+        orderPopup.style.display = "block";
+        overlay.style.display = "block";
+    }
 
-            // ปิดป๊อปอัพเมื่อคลิกปุ่ม "ยกเลิก"
-            closePopupBtn.addEventListener("click", function () {
-                orderPopup.style.display = "none";
-                overlay.style.display = "none";
-            });
+    // ✅ ปิดป๊อปอัพ
+    function closePopup() {
+        orderPopup.style.display = "none";
+        overlay.style.display = "none";
+    }
 
-            // ปิดป๊อปอัพเมื่อคลิกที่พื้นหลังมืด
-            overlay.addEventListener("click", function () {
-                orderPopup.style.display = "none";
-                overlay.style.display = "none";
-            });
+    openPopupBtn.addEventListener("click", openPopup);
+    closePopupBtn.addEventListener("click", closePopup);
+    overlay.addEventListener("click", closePopup);
 
-            // ฟังก์ชันคำนวณราคารวม
-            function calculateTotalPrice() {
-                let total = 0;
-                checkboxes.forEach(item => {
-                    if (item.checked) {
-                        total += parseFloat(item.getAttribute("data-price"));
-                    }
-                });
-                total *= parseInt(quantityInput.value); // คูณกับจำนวน
-                totalPriceDisplay.textContent = total.toFixed(2);
+    // ✅ ฟังก์ชันคำนวณราคารวมภายในป๊อปอัพ
+    function calculateTotalPrice() {
+        let total = 0;
+
+        // ดึงราคาทุก `input[type="checkbox"]` ที่ถูกเลือก
+        checkboxes.forEach(item => {
+            if (item.checked) {
+                total += parseFloat(item.getAttribute("data-price"));
             }
+        });
 
-            // เมื่อผู้ใช้เลือกเมนูใด ๆ หรือเปลี่ยนจำนวนให้คำนวณราคารวมใหม่
-            checkboxes.forEach(item => {
-                item.addEventListener("change", calculateTotalPrice);
+        // คูณจำนวนที่เลือก
+        total *= parseInt(quantityInput.value);
+
+        // แสดงผลราคารวม
+        totalPriceDisplay.textContent = total.toFixed(2);
+    }
+
+    // ✅ คำนวณราคารวมทุกครั้งที่เลือกเมนู
+    checkboxes.forEach(item => {
+        item.addEventListener("change", calculateTotalPrice);
+    });
+
+    // ✅ คำนวณราคารวมเมื่อเปลี่ยนจำนวนสินค้า
+    quantityInput.addEventListener("input", calculateTotalPrice);
+
+    // ✅ คำนวณราคารวมในตะกร้า
+    function updateCartSummary() {
+        let total = 0;
+        let quantity = 0;
+
+        document.querySelectorAll(".order-price").forEach(item => {
+            total += parseFloat(item.innerText);
+        });
+
+        document.querySelectorAll(".quantity-select").forEach(select => {
+            quantity += parseInt(select.value);
+        });
+
+        document.getElementById("totalPrice").innerText = total.toFixed(2);
+        document.getElementById("totalQuantity").innerText = quantity;
+    }
+
+    // ✅ เมื่อเปลี่ยนจำนวนสินค้าในตะกร้า
+    document.querySelectorAll(".quantity-select").forEach(select => {
+        select.addEventListener("change", function () {
+            let orderId = this.getAttribute("data-order-id");
+            let newQuantity = this.value;
+
+            fetch(`/update-quantity/${orderId}/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({ quantity: newQuantity })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    location.reload();
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + data.message);
+                }
             });
-
-            quantityInput.addEventListener("input", calculateTotalPrice);
-
-            // ส่งข้อมูลเมื่อเพิ่มลงตะกร้า
-            document.getElementById("orderForm").addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    let selectedFlour = [];
-    let selectedFillings = [];
-    let selectedToppings = [];
-    let selectedSauces = [];
-    let totalPrice = 0;
-
-    // ดึงค่าจาก Checkbox ที่ถูกเลือก
-    document.querySelectorAll(".menu-item:checked").forEach(item => {
-        let category = item.getAttribute("name"); // ดึงค่า name ของ input
-        let price = parseFloat(item.getAttribute("data-price"));
-        let value = item.value; // ดึงค่า value ที่เป็น id ของเมนู
-
-        totalPrice += price;
-
-        if (category === "flour") selectedFlour.push(value);
-        if (category === "filling") selectedFillings.push(value);
-        if (category === "topping") selectedToppings.push(value);
-        if (category === "sauce") selectedSauces.push(value);
+        });
     });
 
-    let quantity = parseInt(document.getElementById("quantity").value);
-    let finalTotalPrice = totalPrice * quantity;
+    // ✅ ส่งข้อมูลเมื่อเพิ่มลงตะกร้า
+    document.getElementById("orderForm").addEventListener("submit", function (event) {
+        event.preventDefault();
 
-    let orderData = {
-        flour: selectedFlour,
-        fillings: selectedFillings,
-        toppings: selectedToppings,
-        sauces: selectedSauces,
-        quantity: quantity,
-        total_price: finalTotalPrice,
-        note: document.querySelector("input[name='note']").value
-    };
+        let selectedFlour = [];
+        let selectedFillings = [];
+        let selectedToppings = [];
+        let selectedSauces = [];
+        let totalPrice = 0;
 
-    console.log("📦 ข้อมูลที่ส่งไป Backend:", orderData);
+        document.querySelectorAll(".menu-item:checked").forEach(item => {
+            let category = item.getAttribute("name");
+            let price = parseFloat(item.getAttribute("data-price"));
+            let value = item.value;
 
-    fetch("/add-to-cart/", {
-        method: "POST",
-        body: JSON.stringify(orderData),
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("📩 คำตอบจากเซิร์ฟเวอร์:", data);
-        if (data.status === "success") {
-            alert("เพิ่มลงตะกร้าเรียบร้อย!");
-            location.reload();
-        } else {
-            alert("เกิดข้อผิดพลาด: " + data.message);
-        }
-    })
-    .catch(error => {
-        console.error("❌ เกิดข้อผิดพลาดใน Fetch:", error);
-        alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+            totalPrice += price;
+
+            if (category === "flour") selectedFlour.push(value);
+            if (category === "filling") selectedFillings.push(value);
+            if (category === "topping") selectedToppings.push(value);
+            if (category === "sauce") selectedSauces.push(value);
+        });
+
+        let quantity = parseInt(quantityInput.value);
+        let finalTotalPrice = totalPrice * quantity;
+
+        let orderData = {
+            flour: selectedFlour,
+            fillings: selectedFillings,
+            toppings: selectedToppings,
+            sauces: selectedSauces,
+            quantity: quantity,
+            total_price: finalTotalPrice,
+            note: document.querySelector("input[name='note']").value
+        };
+
+        console.log("📦 ข้อมูลที่ส่งไป Backend:", orderData);
+
+        fetch("/add-to-cart/", {
+            method: "POST",
+            body: JSON.stringify(orderData),
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("📩 คำตอบจากเซิร์ฟเวอร์:", data);
+            if (data.status === "success") {
+                alert("เพิ่มลงตะกร้าเรียบร้อย!");
+                window.location.href = "/cart/";
+            } else {
+                alert("เกิดข้อผิดพลาด: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error("❌ เกิดข้อผิดพลาดใน Fetch:", error);
+            alert("เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์");
+        });
     });
+
+    updateCartSummary();
 });
 
-
-        });
         
     </script>
 {% endblock %}

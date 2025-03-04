@@ -3,10 +3,9 @@ from .models import OTP, User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
-from django.utils.timezone import now
 from .models import Flour, Filling, Topping, Sauce,Order,OrderGroup
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required , user_passes_test
 from django.conf import settings
 import json
 from django.contrib.auth import logout
@@ -16,8 +15,14 @@ import pandas as pd
 import plotly.express as px
 from django.db import connection
 from .models import OrderGroup, Order, Flour, Filling, Topping, Sauce
-from django.utils.timezone import localdate, now
+from django.utils.timezone import localdate, now, timedelta
+from django.http import HttpResponse
 
+
+
+# เช็คว่า User อยู่ใน Group "admin"
+def is_admin(user):
+    return user.is_authenticated and user.groups.filter(name="admin").exists()
 
 
 
@@ -80,6 +85,7 @@ def verify_otp(request):
             return render(request, "verify_otp.html", {"error": "ไม่พบ OTP หรือบัญชีนี้"})
 
     return render(request, "verify_otp.html")
+
 
 
 def accept_order(request, queue_number):
@@ -183,7 +189,7 @@ def mark_as_paid(request, queue_number):
 
 
 #------------------------- View สำหรับตรวจสอบ OTP
-
+@login_required(login_url='/')
 def order_crepe(request):
     flours = Flour.objects.all()
     fillings = Filling.objects.all()
@@ -197,6 +203,7 @@ def order_crepe(request):
         "sauces": sauces
     })
 
+@login_required(login_url='/')
 def add_to_cart(request):
     if request.method == "POST":
         try:
@@ -229,6 +236,7 @@ def add_to_cart(request):
 
     return JsonResponse({"status": "error", "message": "Method Not Allowed"}, status=405)
 
+@login_required(login_url='/')
 def cart(request):
     # ✅ ดึงเฉพาะคำสั่งซื้อที่ยังไม่มี OrderGroup (ยังไม่ได้ยืนยัน)
     pending_orders = Order.objects.filter(order_group__isnull=True).order_by("created_at")
@@ -253,13 +261,13 @@ def cart(request):
         "orders": pending_orders,
         "total_price": total_price,
         "total_quantity": total_quantity,
-            "flours": flours,
+        "flours": flours,
         "fillings": fillings,
         "toppings": toppings,
         "sauces": sauces
     })
 
-
+@login_required(login_url='/')
 def delete_order(request, order_id):
     if request.method == "POST":
         try:
@@ -271,7 +279,7 @@ def delete_order(request, order_id):
         
 
     
-
+@login_required(login_url='/')
 def confirm_order(request):
     if request.method == "POST":
         # ✅ ดึงคำสั่งซื้อที่ยังไม่ได้ยืนยัน
@@ -301,7 +309,7 @@ def confirm_order(request):
 
 
 
-
+@login_required(login_url='/')
 def my_orders(request):
     """ ดึงคำสั่งซื้อของผู้ใช้ที่ได้รับการยืนยันหรือเสร็จสิ้น แต่ยังไม่ชำระเงิน """
     
@@ -354,20 +362,25 @@ def my_orders(request):
     })
 
 
-@login_required
+@login_required(login_url='/')
 def logout_view(request):
     logout(request)
     return redirect("request_otp")  # เปลี่ยนเส้นทางไปยังหน้าหลักหลังจากออกจากระบบ
 
-
+@login_required(login_url='/')
 def profile(request):
     return render(request, 'profile.html')
 
 
+
+@login_required(login_url='/')
 def order_history(request):
-    """ แสดงประวัติคำสั่งซื้อที่ชำระเงินเสร็จสิ้น """
-    
-    paid_orders = Order.objects.filter(order_group__status="paid").order_by("-order_group__queue_number")
+    """ แสดงประวัติคำสั่งซื้อของผู้ใช้ที่ล็อกอินอยู่ (เฉพาะที่ชำระเงินแล้ว) """
+
+    paid_orders = Order.objects.filter(
+        order_group__status="paid",
+        user=request.user  # ✅ แสดงเฉพาะออเดอร์ของผู้ใช้ที่ล็อกอินอยู่
+    ).order_by("-order_group__queue_number")
 
     order_groups = {}
     for order in paid_orders:
@@ -380,6 +393,7 @@ def order_history(request):
                 "status_display": "ชำระเงินเสร็จสิ้น",
                 "total_price": 0,
                 "total_quantity": 0,
+                "order_date": order.order_group.created_at.strftime('%Y-%m-%d %H:%M:%S'),
                 "orders": []
             }
 
@@ -387,27 +401,27 @@ def order_history(request):
         try:
             flour_ids = json.loads(order.flour) if order.flour else []
             order.flour = [Flour.objects.get(id=int(f)).name for f in flour_ids if Flour.objects.filter(id=int(f)).exists()]
-        except Exception as e:
+        except Exception:
             order.flour = ["ไม่พบข้อมูลแป้ง"]  # 🔥 ถ้ามีปัญหา ให้แสดงข้อความ
 
         # ✅ ตรวจสอบว่า filling มีอยู่จริงไหม
         try:
             filling_ids = json.loads(order.filling) if order.filling else []
             order.filling = [Filling.objects.get(id=int(f)).name for f in filling_ids if Filling.objects.filter(id=int(f)).exists()]
-        except Exception as e:
+        except Exception:
             order.filling = []
 
         # ✅ ตรวจสอบ topping และ sauce
         try:
             topping_ids = json.loads(order.topping) if order.topping else []
             order.topping = [Topping.objects.get(id=int(t)).name for t in topping_ids if Topping.objects.filter(id=int(t)).exists()]
-        except Exception as e:
+        except Exception:
             order.topping = []
 
         try:
             sauce_ids = json.loads(order.sauce) if order.sauce else []
             order.sauce = [Sauce.objects.get(id=int(s)).name for s in sauce_ids if Sauce.objects.filter(id=int(s)).exists()]
-        except Exception as e:
+        except Exception:
             order.sauce = []
 
         # ✅ อัปเดตราคาทั้งหมดและจำนวนสินค้า
@@ -421,12 +435,12 @@ def order_history(request):
 
 
 
-
 #-----------------Admin------------------------------
 
-def Dashboard(request):
-    return render(request, 'Admin/Dashboard.html')
 
+
+@login_required
+@user_passes_test(is_admin, login_url='/order-crepe') 
 def admin_order(request):
     order_groups = OrderGroup.objects.exclude(status="paid").order_by("queue_number")
 
@@ -447,7 +461,7 @@ def admin_order(request):
         formatted_order_list = []
         for order in orders:
             formatted_order_list.append({
-                "flour": [Flour.objects.get(id=int(f)).name for f in json.loads(order.flour)],
+                "flour": [Flour.objects.get(id=int(f)).name for f in json.loads(order.flour)] if order.flour else [],
                 "filling": [Filling.objects.get(id=int(f)).name for f in json.loads(order.filling)] if order.filling else [],
                 "topping": [Topping.objects.get(id=int(t)).name for t in json.loads(order.topping)] if order.topping else [],
                 "sauce": [Sauce.objects.get(id=int(s)).name for s in json.loads(order.sauce)] if order.sauce else [],
@@ -464,7 +478,13 @@ def admin_order(request):
             "orders": formatted_order_list,
         })
 
-    return render(request, "Admin/admin_order.html", {"order_groups": formatted_orders})
+    # ✅ ตรวจสอบว่ามีออเดอร์หรือไม่
+    has_orders = len(formatted_orders) > 0
+
+    return render(request, "Admin/admin_order.html", {
+        "order_groups": formatted_orders,
+        "has_orders": has_orders  # ✅ ส่งตัวแปรไปที่ Template
+    })
 
 def get_order_details(request, queue_number):
     today = localdate()  # ✅ วันที่ปัจจุบัน
@@ -509,7 +529,8 @@ def get_order_details(request, queue_number):
 
 
 
-
+@login_required
+@user_passes_test(is_admin, login_url='/order-crepe') 
 def add_menu(request):
     if request.method == "POST":
         category = request.POST.get("category")
@@ -556,7 +577,8 @@ def add_menu(request):
         "categories": categories
     })
 
-
+@login_required
+@user_passes_test(is_admin, login_url='/order-crepe') 
 def edit_menu(request):
     if request.method == "POST":
         item_id = request.POST.get("item_id")
@@ -594,6 +616,8 @@ def edit_menu(request):
 
     return JsonResponse({"status": "error", "message": "ไม่รองรับ method นี้"}, status=405)
 
+@login_required
+@user_passes_test(is_admin, login_url='/order-crepe') 
 def delete_menu(request, item_id, category):
     if request.method == "POST":
         try:
@@ -618,112 +642,8 @@ def delete_menu(request, item_id, category):
 
     return JsonResponse({"status": "error", "message": "ไม่รองรับ method นี้"}, status=405)
 
-# def Dashboard(request):
-#     # ✅ Query กราฟ 1: จำนวนไส้แต่ละประเภทที่ขายออกไป (Top 10)
-#     query_filling_sales = """
-#         SELECT f.name, SUM(o.quantity) AS total_sold
-#         FROM saint_order o
-#         JOIN saint_filling f ON o.filling LIKE CONCAT('%', f.id, '%')
-#         GROUP BY f.name
-#         ORDER BY total_sold DESC
-#         LIMIT 10;
-#     """
-
-#     with connection.cursor() as cursor:
-#         cursor.execute(query_filling_sales)
-#         rows_filling = cursor.fetchall()
-
-#     df_filling = pd.DataFrame(rows_filling, columns=["name", "total_sold"])
-#     df_filling["total_sold"] = df_filling["total_sold"].astype(int)
-
-#     # ✅ ตกแต่งกราฟ Top 10 ไส้ที่ขายดีที่สุด
-#     fig1 = px.bar(df_filling, 
-#                 x="name", 
-#                 y="total_sold",
-#                 title="🔝 Top 10 ไส้ที่ขายดีที่สุด",
-#                 text="total_sold",
-#                 labels={"name": "ชื่อไส้", "total_sold": "จำนวนขาย"},
-#                 color="name", 
-#                 color_discrete_sequence=px.colors.qualitative.Set2)
-
-#     fig1.update_traces(textposition="outside", marker=dict(line=dict(width=1.5, color="black")))
-#     fig1.update_layout(
-#         xaxis_title="ประเภทไส้",
-#         yaxis_title="จำนวนขาย",
-#         title_font_size=22,
-#         xaxis_tickangle=-45,
-#         font=dict(size=14),
-#         plot_bgcolor="rgba(0,0,0,0)",
-#         bargap=0.3,
-#         bargroupgap=0.1
-#     )
-
-#     plot1_html = fig1.to_html(full_html=False)
-
-#     # ✅ Query กราฟ 2: ยอดขายรวมตามวันที่ (เลือกช่วงเวลา)
-#     time_filter = request.GET.get("filter", "daily")
-
-#     if time_filter == "daily":
-#         query_sales = """
-#             SELECT DATE(created_at) AS period, SUM(total_price) AS total_sales
-#             FROM saint_order
-#             GROUP BY DATE(created_at)
-#             ORDER BY period;
-#         """
-#     elif time_filter == "weekly":
-#         query_sales = """
-#             SELECT YEARWEEK(created_at) AS period, SUM(total_price) AS total_sales
-#             FROM saint_order
-#             GROUP BY YEARWEEK(created_at)
-#             ORDER BY period;
-#         """
-#     elif time_filter == "monthly":
-#         query_sales = """
-#             SELECT DATE_FORMAT(created_at, '%%Y-%%m') AS period, SUM(total_price) AS total_sales
-#             FROM saint_order
-#             GROUP BY DATE_FORMAT(created_at, '%%Y-%%m')
-#             ORDER BY period;
-#         """
-
-#     with connection.cursor() as cursor:
-#         cursor.execute(query_sales)
-#         rows_sales = cursor.fetchall()
-
-#     df_sales = pd.DataFrame(rows_sales, columns=["period", "total_sales"])
-#     df_sales["total_sales"] = df_sales["total_sales"].astype(float)
-
-#     # ✅ ตกแต่งกราฟยอดขายรวม
-#     fig2 = px.bar(df_sales, 
-#                 x="period", 
-#                 y="total_sales",
-#                 title="📊 ยอดขายรวมตามช่วงเวลา",
-#                 text="total_sales",
-#                 labels={"period": "ช่วงเวลา", "total_sales": "ยอดขายรวม"},
-#                 color="total_sales",
-#                 color_continuous_scale="Viridis")
-
-#     fig2.update_traces(texttemplate='%{text:.2f}', textposition="outside", marker=dict(line=dict(width=1.5, color="black")))
-#     fig2.update_layout(
-#         xaxis_title="ช่วงเวลา",
-#         yaxis_title="ยอดขายรวม (บาท)",
-#         title_font_size=22,
-#         xaxis_tickangle=-30,
-#         font=dict(size=14),
-#         plot_bgcolor="rgba(0,0,0,0)",
-#         bargap=0.3,
-#         bargroupgap=0.1
-#     )
-
-#     plot2_html = fig2.to_html(full_html=False)
-
-#     return render(request, 'Admin/Dashboard.html', {
-#         'plot1_html': plot1_html,
-#         'plot2_html': plot2_html,
-#         'current_filter': time_filter
-#     })
-
-
-
+@login_required
+@user_passes_test(is_admin, login_url='/order-crepe') 
 def order_history_admin(request):
     """ แสดงประวัติคำสั่งซื้อที่ชำระเงินเสร็จสิ้น พร้อมวันที่สั่งซื้อ """
     
@@ -769,12 +689,8 @@ def order_history_admin(request):
     return render(request, "Admin/order_history_admin.html", {"formatted_orders": formatted_orders})
 
 
-import pandas as pd
-import plotly.express as px
-from django.db import connection
-from django.shortcuts import render
-from django.utils.timezone import localdate, timedelta
-
+@login_required
+@user_passes_test(is_admin, login_url='/order-crepe') 
 def Dashboard(request):
     # ✅ รับค่าตัวกรองจาก dropdown
     time_filter = request.GET.get("filter", "weekly")  

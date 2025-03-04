@@ -15,7 +15,9 @@
         {% for group in formatted_orders %}
         <div class="order-container-1">
             <div class="order-summary">
+
                 <h3>คิวที่: <span class="queue-number">{{ group.queue_number }}</span></h3>
+                <p><strong>วันที่สั่งซื้อ:</strong> {{ order_group.order_date }}</p>
                 <p class="order-total"><strong>ราคารวม:</strong> {{ group.total_price }} ฿</p>
                 <p class="order-total"><strong>จำนวนรวม:</strong> {{ group.total_quantity }} ชิ้น</p>
                 <p class="order-status">

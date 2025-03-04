@@ -11,11 +11,13 @@
 <div class="container">
     <div class="order-list">
         <h2>ออเดอร์</h2>
+
         <div class="order-header">
             <span>คิวที่</span>
             <span>สถานะ</span>
             <span>คำสั่งซื้อ</span>
         </div>
+        {% if has_orders %}
 
         {% for group in order_groups %}
         <div class="order-item">
@@ -23,8 +25,11 @@
             <span class="status-label {{ group.status }}" data-group-id="{{ group.queue_number }}">{{ group.status_display }}</span>
             <button class="view-order-btn" data-group-id="{{ group.queue_number }}">ดู</button>
         </div>
-        
         {% endfor %}
+    {% else %}
+        <p class="no-orders">❌ ไม่มีออเดอร์ที่รอดำเนินการ</p>
+    {% endif %}
+
     </div>
 </div>
 <!-- ✅ พื้นหลังมืดโปร่งใส -->
